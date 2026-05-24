@@ -4,818 +4,183 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Staff Workspace - Command Center</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=DM+Mono:wght@400;500;700&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-      *,
-      *::before,
-      *::after {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
       :root {
-        --red: #e30613;
-        --green: #16a34a;
-        --amber: #d97706;
-        --blue: #2563eb;
-        --purple: #8b5cf6;
-        --bg: #f3f4f6;
-        --dark: #0f172a;
-        --card-bg: #ffffff;
-        --text-main: #0f172a;
-        --text-muted: #64748b;
-        --border: #e2e8f0;
-        --hover-bg: #f8fafc;
-        --modal-overlay: rgba(0, 0, 0, 0.5);
-        --table-rank: #fff;
-        --kpi-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
-        --handle-bg: #cbd5e1;
-        --handle-hover: #2563eb;
+        --red: #e30613; --green: #16a34a; --amber: #d97706;
+        --blue: #2563eb; --purple: #8b5cf6; --rose: #e11d48;
+        --bg: #f3f4f6; --dark: #0f172a; --card-bg: #ffffff;
+        --text-main: #0f172a; --text-muted: #64748b; --border: #e2e8f0;
+        --hover-bg: #f8fafc; --modal-overlay: rgba(0,0,0,0.5);
+        --table-rank: #fff; --kpi-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        --handle-bg: #cbd5e1; --handle-hover: #2563eb;
       }
       [data-theme="dark"] {
-        --red: #ff4757;
-        --green: #2ed573;
-        --amber: #ffa502;
-        --blue: #38bdf8;
-        --purple: #a855f7;
-        --bg: #0b1120;
-        --dark: #1e293b;
-        --card-bg: #151e2f;
-        --text-main: #f8fafc;
-        --text-muted: #94a3b8;
-        --border: #1e293b;
-        --hover-bg: rgba(255, 255, 255, 0.03);
-        --modal-overlay: rgba(0, 0, 0, 0.8);
-        --table-rank: #fff;
-        --kpi-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-        --handle-bg: #1e293b;
-        --handle-hover: #38bdf8;
+        --red: #ff4757; --green: #2ed573; --amber: #ffa502;
+        --blue: #38bdf8; --purple: #a855f7; --rose: #fb7185;
+        --bg: #0b1120; --dark: #1e293b; --card-bg: #151e2f;
+        --text-main: #f8fafc; --text-muted: #94a3b8; --border: #1e293b;
+        --hover-bg: rgba(255,255,255,0.03); --modal-overlay: rgba(0,0,0,0.8);
+        --table-rank: #fff; --kpi-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        --handle-bg: #1e293b; --handle-hover: #38bdf8;
       }
 
-      body {
-        font-family: "Montserrat", sans-serif;
-        background: var(--bg);
-        color: var(--text-main);
-        height: 100vh;
-        overflow: hidden;
-        font-size: 11px;
-        display: flex;
-        flex-direction: column;
-        transition:
-          background 0.3s,
-          color 0.3s;
-      }
-      ::-webkit-scrollbar {
-        width: 4px;
-        height: 4px;
-      }
-      ::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      ::-webkit-scrollbar-thumb {
-        background: var(--text-muted);
-        border-radius: 4px;
-      }
-      [data-theme="dark"]
-        input[type="date"]::-webkit-calendar-picker-indicator {
-        filter: invert(1);
-        cursor: pointer;
-      }
+      body { font-family: "Montserrat", sans-serif; background: var(--bg); color: var(--text-main); height: 100vh; overflow: hidden; font-size: 11px; display: flex; flex-direction: column; transition: background 0.3s, color 0.3s; }
+      ::-webkit-scrollbar { width: 4px; height: 4px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 4px; }
+      [data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
 
-      .header {
-        height: 55px;
-        background: var(--card-bg);
-        border-bottom: 1px solid var(--border);
-        padding: 0 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-shrink: 0;
-        box-shadow: var(--kpi-shadow);
-        z-index: 10;
-      }
-      .header-left {
-        display: flex;
-        align-items: baseline;
-        gap: 10px;
-      }
-      .title {
-        font-size: 16px;
-        font-weight: 900;
-        color: var(--text-main);
-        letter-spacing: 1px;
-        text-transform: uppercase;
-      }
-      .subtitle {
-        font-family: "DM Mono", monospace;
-        font-size: 11px;
-        color: var(--blue);
-        font-weight: 800;
-        padding: 4px 10px;
-        background: rgba(37, 99, 235, 0.1);
-        border-radius: 6px;
-        border: 1px solid rgba(37, 99, 235, 0.2);
-      }
-      .header-right {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-      }
-      .ctrl-input {
-        background: var(--bg);
-        color: var(--text-main);
-        border: 1px solid var(--border);
-        border-radius: 4px;
-        padding: 4px 8px;
-        font-size: 10px;
-        font-family: "DM Mono";
-        height: 28px;
-        outline: none;
-        transition: 0.3s;
-      }
-      .ctrl-select-mini {
-        background: var(--bg);
-        color: var(--text-main);
-        border: 1px solid var(--border);
-        border-radius: 3px;
-        padding: 2px 4px;
-        font-size: 9px;
-        font-family: "DM Mono";
-        outline: none;
-        cursor: pointer;
-      }
-      .btn {
-        background: var(--blue);
-        color: #fff;
-        font-weight: 800;
-        font-size: 10px;
-        border: none;
-        border-radius: 4px;
-        padding: 0 14px;
-        height: 28px;
-        cursor: pointer;
-        text-transform: uppercase;
-        transition: 0.2s;
-      }
-      .btn:hover {
-        filter: brightness(1.1);
-        transform: translateY(-1px);
-      }
-      .btn-sm {
-        background: transparent;
-        border: 1px solid var(--border);
-        color: var(--text-main);
-        height: 28px;
-        padding: 0 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 11px;
-        font-weight: 700;
-        transition: 0.3s;
-      }
-      .btn-sm:hover {
-        border-color: var(--blue);
-        color: var(--blue);
-      }
+      .header { height: 55px; background: var(--card-bg); border-bottom: 1px solid var(--border); padding: 0 20px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; box-shadow: var(--kpi-shadow); z-index: 10; }
+      .header-left { display: flex; align-items: baseline; gap: 10px; }
+      .title { font-size: 16px; font-weight: 900; color: var(--text-main); letter-spacing: 1px; text-transform: uppercase; }
+      .subtitle { font-family: "DM Mono", monospace; font-size: 11px; color: var(--blue); font-weight: 800; padding: 4px 10px; background: rgba(37,99,235,0.1); border-radius: 6px; border: 1px solid rgba(37,99,235,0.2); }
+      .header-right { display: flex; gap: 8px; align-items: center; }
+      .ctrl-input { background: var(--bg); color: var(--text-main); border: 1px solid var(--border); border-radius: 4px; padding: 4px 8px; font-size: 10px; font-family: "DM Mono"; height: 28px; outline: none; transition: 0.3s; }
+      .btn { background: var(--blue); color: #fff; font-weight: 800; font-size: 10px; border: none; border-radius: 4px; padding: 0 14px; height: 28px; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+      .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+      .btn-sm { background: transparent; border: 1px solid var(--border); color: var(--text-main); height: 28px; padding: 0 10px; display: flex; align-items: center; justify-content: center; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 700; transition: 0.3s; }
+      .btn-sm:hover { border-color: var(--blue); color: var(--blue); }
 
-      .hud-container {
-        display: flex;
-        flex-direction: row;
-        gap: 0;
-        padding: 14px 10px 14px 20px;
-        flex-grow: 1;
-        min-height: 0;
-        overflow: hidden;
-      }
-      .hud-col {
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-        min-height: 0;
-        overflow-y: auto;
-        overflow-x: hidden;
-        flex-shrink: 0;
-        padding-right: 4px;
-      }
-      #col-left {
-        width: 22%;
-        min-width: 180px;
-      }
-      #col-center {
-        flex: 1;
-        min-width: 300px;
-        padding: 0 5px;
-        overflow: hidden;
-      }
-      #col-right {
-        width: 28%;
-        min-width: 200px;
-      }
+      .hud-container { display: flex; flex-direction: row; gap: 0; padding: 14px 10px 14px 20px; flex-grow: 1; min-height: 0; overflow: hidden; }
+      .hud-col { display: flex; flex-direction: column; gap: 14px; min-height: 0; overflow-y: auto; overflow-x: hidden; flex-shrink: 0; padding-right: 4px; }
+      #col-left { width: 22%; min-width: 180px; }
+      #col-center { flex: 1; min-width: 300px; padding: 0 5px; overflow: hidden; }
+      #col-right { width: 28%; min-width: 200px; }
 
-      .resize-handle {
-        width: 10px;
-        flex-shrink: 0;
-        cursor: col-resize;
-        display: flex;
-        align-items: stretch;
-        justify-content: center;
-        position: relative;
-        z-index: 10;
-      }
-      .resize-handle::before {
-        content: "";
-        width: 3px;
-        background: var(--handle-bg);
-        border-radius: 3px;
-        transition:
-          background 0.2s,
-          width 0.2s;
-        margin: 20px 0;
-      }
-      .resize-handle:hover::before,
-      .resize-handle.rh-active::before {
-        background: var(--handle-hover);
-        width: 4px;
-      }
+      .resize-handle { width: 10px; flex-shrink: 0; cursor: col-resize; display: flex; align-items: stretch; justify-content: center; position: relative; z-index: 10; }
+      .resize-handle::before { content: ""; width: 3px; background: var(--handle-bg); border-radius: 3px; transition: background 0.2s, width 0.2s; margin: 20px 0; }
+      .resize-handle:hover::before, .resize-handle.rh-active::before { background: var(--handle-hover); width: 4px; }
 
-      .panel {
-        background: var(--card-bg);
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        box-shadow: var(--kpi-shadow);
-        transition: box-shadow 0.2s;
-        flex-shrink: 0;
-      }
-      .panel.draggable {
-        cursor: grab;
-        border: 2px dashed var(--blue);
-        opacity: 0.9;
-      }
-      .panel.draggable:active {
-        cursor: grabbing;
-        opacity: 1;
-        transform: scale(1.02);
-      }
-      .panel-hd {
-        padding: 10px 14px;
-        border-bottom: 1px solid var(--border);
-        font-size: 10px;
-        font-weight: 800;
-        text-transform: uppercase;
-        color: var(--text-muted);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: transparent;
-        transition: 0.3s;
-      }
-      .panel-bd {
-        padding: 12px 14px;
-        flex-grow: 1;
-        display: flex;
-        flex-direction: column;
-        position: relative;
-        min-height: 0;
-      }
+      .panel { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--kpi-shadow); transition: box-shadow 0.2s; flex-shrink: 0; }
+      .panel.draggable { cursor: grab; border: 2px dashed var(--blue); opacity: 0.9; }
+      .panel.draggable:active { cursor: grabbing; opacity: 1; transform: scale(1.02); }
+      .panel-hd { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; background: transparent; transition: 0.3s; }
+      .panel-bd { padding: 12px 14px; flex-grow: 1; display: flex; flex-direction: column; position: relative; min-height: 0; }
 
-      .kpi-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-      }
-      .kpi-card {
-        background: var(--card-bg);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 12px 14px;
-        cursor: pointer;
-        transition: 0.3s;
-        position: relative;
-        overflow: hidden;
-      }
-      .kpi-card::before {
-        content: "";
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: 4px;
-        background: var(--border);
-        transition: 0.3s;
-      }
-      .kpi-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
-      }
+      /* ===================== KPI GRID ===================== */
+      .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      .kpi-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; cursor: pointer; transition: 0.3s; position: relative; overflow: hidden; }
+      .kpi-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--border); transition: 0.3s; }
+      .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.08); }
+      .kpi-card.blue::before { background: var(--blue); }
+      .kpi-card.blue { background: linear-gradient(90deg, rgba(37,99,235,0.05), transparent); border-color: rgba(37,99,235,0.2); }
+      .kpi-card.green::before { background: var(--green); }
+      .kpi-card.green { background: linear-gradient(90deg, rgba(22,163,74,0.05), transparent); border-color: rgba(22,163,74,0.2); }
+      .kpi-card.amber::before { background: var(--amber); }
+      .kpi-card.amber { background: linear-gradient(90deg, rgba(217,119,6,0.05), transparent); border-color: rgba(217,119,6,0.2); }
+      .kpi-card.purple::before { background: var(--purple); }
+      .kpi-card.purple { background: linear-gradient(90deg, rgba(139,92,246,0.05), transparent); border-color: rgba(139,92,246,0.2); }
+      .kpi-card.rose::before { background: var(--rose); }
+      .kpi-card.rose { background: linear-gradient(90deg, rgba(225,29,72,0.05), transparent); border-color: rgba(225,29,72,0.2); }
+      .kpi-lbl { font-size: 8px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px; }
+      .kpi-val { font-family: "DM Mono"; font-size: 26px; font-weight: 900; line-height: 1; color: var(--text-main); }
 
-      .kpi-card.blue::before {
-        background: var(--blue);
-      }
-      .kpi-card.blue {
-        background: linear-gradient(
-          90deg,
-          rgba(37, 99, 235, 0.05),
-          transparent
-        );
-        border-color: rgba(37, 99, 235, 0.2);
-      }
+      /* ---- DELTA BADGE (mới) ---- */
+      .kpi-delta { display: flex; align-items: center; gap: 4px; margin-top: 6px; font-family: "DM Mono"; font-size: 9px; font-weight: 700; }
+      .kpi-delta.up { color: var(--green); }
+      .kpi-delta.down { color: var(--red); }
+      .kpi-delta.neutral { color: var(--text-muted); }
+      .kpi-delta .arrow { font-size: 10px; line-height: 1; }
+      .kpi-delta .prev-label { font-size: 8px; color: var(--text-muted); font-weight: 600; margin-left: 2px; }
 
-      .kpi-card.green::before {
-        background: var(--green);
-      }
-      .kpi-card.green {
-        background: linear-gradient(
-          90deg,
-          rgba(22, 163, 74, 0.05),
-          transparent
-        );
-        border-color: rgba(22, 163, 74, 0.2);
-      }
+      /* ---- SPARKLINE (mini SVG) ---- */
+      .kpi-sparkline { margin-top: 6px; height: 28px; width: 100%; }
+      .sparkline-path { fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+      .sparkline-fill { opacity: 0.12; }
 
-      .kpi-card.amber::before {
-        background: var(--amber);
-      }
-      .kpi-card.amber {
-        background: linear-gradient(
-          90deg,
-          rgba(217, 119, 6, 0.05),
-          transparent
-        );
-        border-color: rgba(217, 119, 6, 0.2);
-      }
+      .close-rate-wrap { padding: 14px; border-top: 1px solid var(--border); background: rgba(0,0,0,0.01); }
+      .close-rate-lbl { font-size: 9px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; display: flex; justify-content: space-between; }
+      .close-rate-bar { height: 8px; background: var(--border); border-radius: 8px; overflow: hidden; }
+      .close-rate-fill { height: 100%; background: linear-gradient(90deg, var(--blue), var(--green)); border-radius: 8px; transition: width 0.6s ease; }
 
-      .kpi-card.purple::before {
-        background: var(--purple);
-      }
-      .kpi-card.purple {
-        background: linear-gradient(
-          90deg,
-          rgba(139, 92, 246, 0.05),
-          transparent
-        );
-        border-color: rgba(139, 92, 246, 0.2);
-      }
+      .chart-wrap { height: 100%; min-height: 150px; width: 100%; position: relative; }
+      .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; min-height: 0; }
 
-      .kpi-lbl {
-        font-size: 8px;
-        font-weight: 800;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        margin-bottom: 8px;
-        letter-spacing: 0.5px;
-      }
-      .kpi-val {
-        font-family: "DM Mono";
-        font-size: 28px;
-        font-weight: 900;
-        line-height: 1;
-        color: var(--text-main);
-      }
+      /* ===================== MINI TABLE ===================== */
+      .mini-table { width: 100%; height: 100%; border-collapse: collapse; display: flex; flex-direction: column; }
+      .mini-table tbody { display: flex; flex-direction: column; flex-grow: 1; justify-content: space-evenly; }
+      .mini-table tr { cursor: pointer; transition: background 0.1s; border-bottom: 1px dashed var(--border); display: flex; align-items: center; flex-grow: 1; padding: 4px 0; }
+      .mini-table tr.no-hover { cursor: default; border-bottom: 1px solid var(--border); flex-grow: 0; }
+      .mini-table tr.no-hover:hover { background: transparent; }
+      .mini-table tr:last-child { border-bottom: none; }
+      .mini-table tr:hover { background: var(--hover-bg); padding-left: 4px; }
+      .mini-table th { padding: 6px 4px; font-size: 9px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
+      .mini-table td { font-size: 10.5px; font-weight: 600; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 4px; }
+      .mini-table td:last-child { text-align: right; font-family: "DM Mono"; font-weight: 800; color: var(--text-main); flex: 0 0 auto; }
+      .rank { font-family: "DM Mono"; background: var(--blue); padding: 2px 5px; border-radius: 4px; font-size: 8px; margin-right: 8px; color: var(--table-rank); }
 
-      .close-rate-wrap {
-        padding: 14px;
-        border-top: 1px solid var(--border);
-        background: rgba(0, 0, 0, 0.01);
-      }
-      .close-rate-lbl {
-        font-size: 9px;
-        font-weight: 800;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        margin-bottom: 6px;
-        display: flex;
-        justify-content: space-between;
-      }
-      .close-rate-bar {
-        height: 8px;
-        background: var(--border);
-        border-radius: 8px;
-        overflow: hidden;
-      }
-      .close-rate-fill {
-        height: 100%;
-        background: linear-gradient(90deg, var(--blue), var(--green));
-        border-radius: 8px;
-        transition: width 0.6s ease;
-      }
+      /* ===================== PENDING LIST ===================== */
+      #pendingBody { display: flex !important; flex-direction: column; overflow-y: auto; flex-grow: 1; height: 180px; }
+      #pendingBody::-webkit-scrollbar { width: 4px; }
+      #pendingBody::-webkit-scrollbar-track { background: transparent; }
+      #pendingBody::-webkit-scrollbar-thumb { background: var(--blue); border-radius: 4px; }
+      #pendingBody tr { display: flex; width: 100%; align-items: center; flex-shrink: 0; min-height: 36px; }
 
-      .chart-wrap {
-        height: 100%;
-        min-height: 150px;
-        width: 100%;
-        position: relative;
-      }
-      .charts-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 14px;
-        min-height: 0;
-      }
+      /* ---- WAITING BADGE (mới) ---- */
+      .wait-badge { display: inline-flex; align-items: center; justify-content: center; padding: 2px 7px; border-radius: 10px; font-family: "DM Mono"; font-size: 8.5px; font-weight: 800; white-space: nowrap; flex-shrink: 0; }
+      .wait-badge.fresh { background: rgba(22,163,74,0.15); color: var(--green); border: 1px solid rgba(22,163,74,0.3); }
+      .wait-badge.warn  { background: rgba(217,119,6,0.15);  color: var(--amber); border: 1px solid rgba(217,119,6,0.3); }
+      .wait-badge.hot   { background: rgba(225,29,72,0.15);  color: var(--rose);  border: 1px solid rgba(225,29,72,0.3); }
 
-      .mini-table {
-        width: 100%;
-        height: 100%;
-        border-collapse: collapse;
-        display: flex;
-        flex-direction: column;
-      }
-      .mini-table tbody {
-        display: flex;
-        flex-direction: column;
-        flex-grow: 1;
-        justify-content: space-evenly;
-      }
-      .mini-table tr {
-        cursor: pointer;
-        transition: background 0.1s;
-        border-bottom: 1px dashed var(--border);
-        display: flex;
-        align-items: center;
-        flex-grow: 1;
-        padding: 4px 0;
-      }
-      .mini-table tr.no-hover {
-        cursor: default;
-        border-bottom: 1px solid var(--border);
-        flex-grow: 0;
-      }
-      .mini-table tr.no-hover:hover {
-        background: transparent;
-      }
-      .mini-table tr:last-child {
-        border-bottom: none;
-      }
-      .mini-table tr:hover {
-        background: var(--hover-bg);
-        padding-left: 4px;
-      }
-      .mini-table th {
-        padding: 6px 4px;
-        font-size: 9px;
-        font-weight: 800;
-        color: var(--text-muted);
-        text-transform: uppercase;
-      }
-      .mini-table td {
-        font-size: 10.5px;
-        font-weight: 600;
-        flex: 1;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        padding: 4px;
-      }
-      .mini-table td:last-child {
-        text-align: right;
-        font-family: "DM Mono";
-        font-weight: 800;
-        color: var(--text-main);
-        flex: 0 0 auto;
-      }
-      .rank {
-        font-family: "DM Mono";
-        background: var(--blue);
-        padding: 2px 5px;
-        border-radius: 4px;
-        font-size: 8px;
-        margin-right: 8px;
-        color: var(--table-rank);
-      }
+      /* ===================== MODAL ===================== */
+      .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--modal-overlay); backdrop-filter: blur(4px); z-index: 1000; display: none; justify-content: center; align-items: center; }
+      .modal-overlay.active { display: flex; }
+      .modal-content { background: var(--card-bg); width: 95%; max-width: 1450px; height: 85vh; border-radius: 12px; border: 1px solid var(--border); display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,0.4); overflow: hidden; animation: zoomIn 0.2s ease-out; position: relative; }
+      @keyframes zoomIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+      .modal-hd { padding: 16px 24px; background: var(--dark); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+      .modal-title { font-weight: 800; font-size: 14px; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; }
+      .modal-meta { font-family: "DM Mono"; font-size: 11px; color: #94a3b8; margin-left: 12px; }
+      .modal-search { background: var(--bg); color: var(--text-main); border: 1px solid var(--border); padding: 8px 14px; border-radius: 6px; font-family: "Montserrat", sans-serif; font-size: 11.5px; outline: none; width: 260px; transition: 0.3s; margin-right: 12px; }
+      .modal-search:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,0.2); }
+      .close-btn { background: none; border: none; color: #fff; font-size: 26px; cursor: pointer; padding: 0 4px; line-height: 1; }
+      .close-btn:hover { color: var(--red); }
+      .modal-bd { padding: 0; overflow: auto; flex-grow: 1; }
 
-      #pendingBody {
-        display: flex !important;
-        flex-direction: column;
-        overflow-y: auto;
-        flex-grow: 1;
-        height: 180px;
-      }
-      #pendingBody::-webkit-scrollbar {
-        width: 4px;
-      }
-      #pendingBody::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      #pendingBody::-webkit-scrollbar-thumb {
-        background: var(--blue);
-        border-radius: 4px;
-      }
-      #pendingBody tr {
-        display: flex;
-        width: 100%;
-        align-items: center;
-        flex-shrink: 0;
-        min-height: 36px;
-      }
+      .detail-table { width: 100%; border-collapse: collapse; font-size: 11.5px; text-align: left; }
+      .detail-table th { position: sticky; top: 0; background: var(--bg); padding: 14px 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; z-index: 10; border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; transition: 0.2s; }
+      .detail-table th:hover { background: var(--hover-bg); color: var(--blue); }
+      .detail-table td { padding: 12px; border-bottom: 1px solid var(--border); color: var(--text-main); font-weight: 500; }
+      .detail-table tr:hover { background: var(--hover-bg); cursor: pointer; }
+      .sort-icon { display: inline-block; width: 14px; text-align: center; color: var(--blue); font-size: 10px; }
+      .badge { display: inline-block; padding: 5px 12px; border-radius: 4px; font-size: 9.5px; font-weight: 800; text-transform: uppercase; white-space: nowrap; min-width: 110px; text-align: center; letter-spacing: 0.3px; }
+      .b-new { background: rgba(59,130,246,0.12); color: #2563eb; border: 1px solid rgba(59,130,246,0.3); }
+      .b-processing { background: rgba(16,185,129,0.12); color: #059669; border: 1px solid rgba(16,185,129,0.3); }
+      .b-wait { background: rgba(245,158,11,0.12); color: #d97706; border: 1px solid rgba(245,158,11,0.3); }
+      .b-esc { background: rgba(249,115,22,0.12); color: #ea580c; border: 1px solid rgba(249,115,22,0.3); }
+      .b-done { background: rgba(100,116,139,0.12); color: #475569; border: 1px solid rgba(100,116,139,0.3); }
 
-      .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: var(--modal-overlay);
-        backdrop-filter: blur(4px);
-        z-index: 1000;
-        display: none;
-        justify-content: center;
-        align-items: center;
-      }
-      .modal-overlay.active {
-        display: flex;
-      }
-      .modal-content {
-        background: var(--card-bg);
-        width: 95%;
-        max-width: 1450px;
-        height: 85vh;
-        border-radius: 12px;
-        border: 1px solid var(--border);
-        display: flex;
-        flex-direction: column;
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
-        overflow: hidden;
-        animation: zoomIn 0.2s ease-out;
-        position: relative;
-      }
-      @keyframes zoomIn {
-        from {
-          transform: scale(0.95);
-          opacity: 0;
-        }
-        to {
-          transform: scale(1);
-          opacity: 1;
-        }
-      }
-      .modal-hd {
-        padding: 16px 24px;
-        background: var(--dark);
-        border-bottom: 1px solid var(--border);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .modal-title {
-        font-weight: 800;
-        font-size: 14px;
-        color: #fff;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-      .modal-meta {
-        font-family: "DM Mono";
-        font-size: 11px;
-        color: #94a3b8;
-        margin-left: 12px;
-      }
-      .modal-search {
-        background: var(--bg);
-        color: var(--text-main);
-        border: 1px solid var(--border);
-        padding: 8px 14px;
-        border-radius: 6px;
-        font-family: "Montserrat", sans-serif;
-        font-size: 11.5px;
-        outline: none;
-        width: 260px;
-        transition: 0.3s;
-        margin-right: 12px;
-      }
-      .modal-search:focus {
-        border-color: var(--blue);
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
-      }
-      .close-btn {
-        background: none;
-        border: none;
-        color: #fff;
-        font-size: 26px;
-        cursor: pointer;
-        padding: 0 4px;
-        line-height: 1;
-      }
-      .close-btn:hover {
-        color: var(--red);
-      }
-      .modal-bd {
-        padding: 0;
-        overflow: auto;
-        flex-grow: 1;
-      }
+      .btn-xlsx { background: rgba(16,185,129,0.15); border: 1px solid #059669; color: #059669; font-size: 10px; font-weight: 800; padding: 0 16px; height: 30px; border-radius: 6px; cursor: pointer; transition: 0.2s; white-space: nowrap; }
+      .btn-xlsx:hover { background: #059669; color: #fff; }
 
-      .detail-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 11.5px;
-        text-align: left;
-      }
-      .detail-table th {
-        position: sticky;
-        top: 0;
-        background: var(--bg);
-        padding: 14px 12px;
-        font-weight: 800;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        z-index: 10;
-        border-bottom: 1px solid var(--border);
-        cursor: pointer;
-        user-select: none;
-        transition: 0.2s;
-      }
-      .detail-table th:hover {
-        background: var(--hover-bg);
-        color: var(--blue);
-      }
-      .detail-table td {
-        padding: 12px;
-        border-bottom: 1px solid var(--border);
-        color: var(--text-main);
-        font-weight: 500;
-      }
-      .detail-table tr:hover {
-        background: var(--hover-bg);
-        cursor: pointer;
-      }
-      .sort-icon {
-        display: inline-block;
-        width: 14px;
-        text-align: center;
-        color: var(--blue);
-        font-size: 10px;
-      }
-      .badge {
-        display: inline-block;
-        padding: 5px 12px;
-        border-radius: 4px;
-        font-size: 9.5px;
-        font-weight: 800;
-        text-transform: uppercase;
-        white-space: nowrap;
-        min-width: 110px;
-        text-align: center;
-        letter-spacing: 0.3px;
-      }
+      .sub-modal { position: absolute; top: 0; left: 100%; width: 100%; height: 100%; background: var(--card-bg); z-index: 200; transition: 0.3s ease-out; display: flex; flex-direction: column; }
+      .sub-modal.show { left: 0; }
+      .sub-modal-hd { padding: 16px 24px; background: var(--dark); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); color: #fff; }
+      .sub-modal-bd { padding: 24px; overflow: auto; flex-grow: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+      .dt-group { background: var(--bg); padding: 14px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 14px; }
+      .dt-lbl { font-size: 9px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px; }
+      .dt-val { font-size: 13px; font-weight: 600; color: var(--text-main); word-wrap: break-word; line-height: 1.5; }
+      .dt-val-mono { font-family: "DM Mono"; font-weight: 800; font-size: 14px; color: var(--blue); }
+      .edit-input { width: 100%; padding: 8px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-main); font-size: 13px; border-radius: 4px; outline: none; margin-top: 4px; font-family: inherit; }
+      .edit-input:focus { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(37,99,235,0.1); }
 
-      .b-new {
-        background: rgba(59, 130, 246, 0.12);
-        color: #2563eb;
-        border: 1px solid rgba(59, 130, 246, 0.3);
-      }
-      .b-processing {
-        background: rgba(16, 185, 129, 0.12);
-        color: #059669;
-        border: 1px solid rgba(16, 185, 129, 0.3);
-      }
-      .b-wait {
-        background: rgba(245, 158, 11, 0.12);
-        color: #d97706;
-        border: 1px solid rgba(245, 158, 11, 0.3);
-      }
-      .b-esc {
-        background: rgba(249, 115, 22, 0.12);
-        color: #ea580c;
-        border: 1px solid rgba(249, 115, 22, 0.3);
-      }
-      .b-done {
-        background: rgba(100, 116, 139, 0.12);
-        color: #475569;
-        border: 1px solid rgba(100, 116, 139, 0.3);
-      }
+      /* ===================== HOUR HEATMAP (mới) ===================== */
+      .hour-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 3px; }
+      .hour-cell { border-radius: 3px; height: 28px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: default; transition: transform 0.15s; position: relative; }
+      .hour-cell:hover { transform: scaleY(1.1); z-index: 2; }
+      .hour-cell .hc-lbl { font-family: "DM Mono"; font-size: 7.5px; font-weight: 700; color: var(--text-muted); margin-top: 2px; }
+      .hour-cell .hc-val { font-family: "DM Mono"; font-size: 9px; font-weight: 800; }
+      .hour-peak-row { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 9px; color: var(--text-muted); font-weight: 600; }
+      .hour-peak-row span { font-family: "DM Mono"; font-weight: 800; }
 
-      .btn-xlsx {
-        background: rgba(16, 185, 129, 0.15);
-        border: 1px solid #059669;
-        color: #059669;
-        font-size: 10px;
-        font-weight: 800;
-        padding: 0 16px;
-        height: 30px;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: 0.2s;
-        white-space: nowrap;
-      }
-      .btn-xlsx:hover {
-        background: #059669;
-        color: #fff;
-      }
-
-      .sub-modal {
-        position: absolute;
-        top: 0;
-        left: 100%;
-        width: 100%;
-        height: 100%;
-        background: var(--card-bg);
-        z-index: 200;
-        transition: 0.3s ease-out;
-        display: flex;
-        flex-direction: column;
-      }
-      .sub-modal.show {
-        left: 0;
-      }
-      .sub-modal-hd {
-        padding: 16px 24px;
-        background: var(--dark);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid var(--border);
-        color: #fff;
-      }
-      .sub-modal-bd {
-        padding: 24px;
-        overflow: auto;
-        flex-grow: 1;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 24px;
-      }
-      .dt-group {
-        background: var(--bg);
-        padding: 14px;
-        border-radius: 8px;
-        border: 1px solid var(--border);
-        margin-bottom: 14px;
-      }
-      .dt-lbl {
-        font-size: 9px;
-        font-weight: 800;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        margin-bottom: 6px;
-        letter-spacing: 0.5px;
-      }
-      .dt-val {
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--text-main);
-        word-wrap: break-word;
-        line-height: 1.5;
-      }
-      .dt-val-mono {
-        font-family: "DM Mono";
-        font-weight: 800;
-        font-size: 14px;
-        color: var(--blue);
-      }
-      .edit-input {
-        width: 100%;
-        padding: 8px;
-        border: 1px solid var(--border);
-        background: var(--card-bg);
-        color: var(--text-main);
-        font-size: 13px;
-        border-radius: 4px;
-        outline: none;
-        margin-top: 4px;
-        font-family: inherit;
-      }
-      .edit-input:focus {
-        border-color: var(--blue);
-        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
-      }
-
-      .layout-toolbar {
-        display: none;
-        position: fixed;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: var(--dark);
-        border: 1px solid var(--blue);
-        border-radius: 24px;
-        padding: 8px 20px;
-        gap: 10px;
-        align-items: center;
-        z-index: 999;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-      }
-      .layout-toolbar.visible {
-        display: flex;
-      }
-      .layout-toolbar-label {
-        color: #fff;
-        font-size: 10px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
+      .layout-toolbar { display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--dark); border: 1px solid var(--blue); border-radius: 24px; padding: 8px 20px; gap: 10px; align-items: center; z-index: 999; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+      .layout-toolbar.visible { display: flex; }
+      .layout-toolbar-label { color: #fff; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
     </style>
   </head>
   <body>
@@ -823,331 +188,135 @@
       <div class="header-left">
         <div class="title">BÁO CÁO NĂNG LỰC CÁ NHÂN</div>
         <div class="subtitle" id="staffNameDisplay">ĐANG TẢI...</div>
-        <span
-          id="fetchStatus"
-          style="
-            font-size: 10px;
-            font-weight: 600;
-            color: var(--text-muted);
-            margin-left: 10px;
-            align-self: center;
-          "
-          >Đang khởi tạo...</span
-        >
+        <span id="fetchStatus" style="font-size:10px;font-weight:600;color:var(--text-muted);margin-left:10px;align-self:center;">Đang khởi tạo...</span>
       </div>
       <div class="header-right">
-        <div
-          id="refresh-timer"
-          style="
-            font-size: 10px;
-            font-family: &quot;DM Mono&quot;, monospace;
-            font-weight: 700;
-            color: var(--text-muted);
-            margin-right: 5px;
-          "
-        >
-          05:00
-        </div>
-        <button
-          class="btn-sm"
-          id="themeToggle"
-          onclick="toggleTheme()"
-          title="Đổi nền Sáng/Tối"
-        >
-          🌙
-        </button>
-        <button
-          class="btn-sm"
-          id="btnEditLayout"
-          onclick="toggleLayoutEdit()"
-          title="Kéo thả vị trí bảng"
-        >
-          ⚙️ Layout
-        </button>
-        <div
-          style="
-            width: 1px;
-            height: 16px;
-            background: var(--border);
-            margin: 0 4px;
-          "
-        ></div>
-        <select
-          id="periodMode"
-          class="ctrl-input"
-          onchange="onHeaderModeChange()"
-        >
+        <div id="refresh-timer" style="font-size:10px;font-family:'DM Mono',monospace;font-weight:700;color:var(--text-muted);margin-right:5px;">05:00</div>
+        <button class="btn-sm" id="themeToggle" onclick="toggleTheme()" title="Đổi nền Sáng/Tối">🌙</button>
+        <button class="btn-sm" id="btnEditLayout" onclick="toggleLayoutEdit()" title="Kéo thả vị trí bảng">⚙️ Layout</button>
+        <div style="width:1px;height:16px;background:var(--border);margin:0 4px;"></div>
+        <select id="periodMode" class="ctrl-input" onchange="onHeaderModeChange()">
           <option value="custom">Tùy chọn</option>
           <option value="day">Hôm nay</option>
           <option value="week">Tuần này</option>
           <option value="month">Tháng này</option>
         </select>
-        <input id="fromDate" class="ctrl-input" type="date" />
-        <input id="toDate" class="ctrl-input" type="date" />
+        <input id="fromDate" class="ctrl-input" type="date"/>
+        <input id="toDate" class="ctrl-input" type="date"/>
         <button class="btn" onclick="applyRange()">Lọc</button>
       </div>
     </div>
 
     <div class="hud-container" id="hudContainer">
+      <!-- COL LEFT -->
       <div class="hud-col" id="col-left">
+
+        <!-- KPI Panel -->
         <div class="panel" id="panel-kpi">
           <div class="panel-hd">Tổng quan hiệu suất</div>
-          <div class="panel-bd kpi-grid" style="padding-bottom: 4px">
-            <div
-              class="kpi-card blue"
-              onclick="openDetail('Toàn bộ phiếu tiếp nhận', (d) => true)"
-            >
+          <div class="panel-bd kpi-grid" style="padding-bottom:4px;">
+
+            <div class="kpi-card blue" onclick="openDetail('Toàn bộ phiếu tiếp nhận', (d) => true)">
               <div class="kpi-lbl">Tổng Tiếp Nhận</div>
               <div class="kpi-val" id="kpiTotal">0</div>
+              <div class="kpi-delta neutral" id="kpiTotalDelta"><span class="arrow">—</span><span>vs kỳ trước</span></div>
+              <svg class="kpi-sparkline" id="sparkTotal" viewBox="0 0 80 28" preserveAspectRatio="none"></svg>
             </div>
-            <div
-              class="kpi-card green"
-              onclick="openDetail('Danh sách phiếu đã đóng', (d) => d.isClosed)"
-            >
+
+            <div class="kpi-card green" onclick="openDetail('Danh sách phiếu đã đóng', (d) => d.isClosed)">
               <div class="kpi-lbl">Đã Xử Lý</div>
               <div class="kpi-val" id="kpiClosed">0</div>
+              <div class="kpi-delta neutral" id="kpiClosedDelta"><span class="arrow">—</span><span>vs kỳ trước</span></div>
+              <svg class="kpi-sparkline" id="sparkClosed" viewBox="0 0 80 28" preserveAspectRatio="none"></svg>
             </div>
-            <div
-              class="kpi-card amber"
-              onclick="
-                openDetail('Danh sách phiếu đang chờ xử lý', (d) => !d.isClosed)
-              "
-            >
-              <div class="kpi-lbl">Đang Chờ Xử Lý</div>
+
+            <div class="kpi-card amber" onclick="openDetail('Danh sách phiếu đang chờ xử lý', (d) => !d.isClosed)">
+              <div class="kpi-lbl">Tồn Đọng <span style="font-weight:600;text-transform:none;font-size:7px;opacity:0.8;">(tất cả TG)</span></div>
               <div class="kpi-val" id="kpiOpen">0</div>
+              <div class="kpi-delta neutral" id="kpiOpenDelta"><span class="arrow">—</span><span>vs kỳ trước</span></div>
             </div>
-            <div
-              class="kpi-card purple"
-              onclick="
-                openDetail(
-                  'Các phiếu có ghi nhận bấm giờ',
-                  (d) => d.duration > 0,
-                )
-              "
-            >
+
+            <div class="kpi-card purple" onclick="openDetail('Các phiếu có ghi nhận bấm giờ', (d) => d.duration > 0)">
               <div class="kpi-lbl">Tốc Độ TB (Phút)</div>
               <div class="kpi-val" id="kpiAvgTime">0</div>
+              <div class="kpi-delta neutral" id="kpiTimeDelta"><span class="arrow">—</span><span>vs kỳ trước</span></div>
             </div>
+
+            <div class="kpi-card rose" style="grid-column: 1 / -1; cursor:pointer;" onclick="openDetail('Phiếu Leo Thang (Escalated)', (d) => d.isEscalated)">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                  <div class="kpi-lbl">Tỷ Lệ Leo Thang (Escalate)</div>
+                  <div style="display:flex;align-items:baseline;gap:10px;">
+                    <div class="kpi-val" style="font-size:22px;" id="kpiEscRate">0%</div>
+                    <div style="font-family:'DM Mono';font-size:11px;color:var(--text-muted);" id="kpiEscCount">(0 phiếu)</div>
+                  </div>
+                </div>
+                <div style="text-align:right;">
+                  <div class="kpi-lbl">SLA vượt ngưỡng</div>
+                  <div style="font-family:'DM Mono';font-size:14px;font-weight:900;" id="kpiSlaBreached">0 phiếu</div>
+                  <div style="font-family:'DM Mono';font-size:9px;color:var(--text-muted);" id="kpiSlaPct">—</div>
+                </div>
+              </div>
+            </div>
+
           </div>
           <div class="close-rate-wrap">
             <div class="close-rate-lbl">
               <span>Tỷ lệ hoàn thành công việc</span>
-              <span
-                id="closeRatePct"
-                style="color: var(--green); font-weight: 900"
-                >0%</span
-              >
+              <span id="closeRatePct" style="color:var(--green);font-weight:900;">0%</span>
             </div>
             <div class="close-rate-bar">
-              <div
-                class="close-rate-fill"
-                id="closeRateFill"
-                style="width: 0%"
-              ></div>
+              <div class="close-rate-fill" id="closeRateFill" style="width:0%"></div>
             </div>
           </div>
         </div>
 
-        <div class="panel" id="panel-insights" style="flex-grow: 1">
+        <!-- Insights Panel -->
+        <div class="panel" id="panel-insights" style="flex-grow:1;">
           <div class="panel-hd">Phân tích Hệ thống (Insights)</div>
-          <div
-            class="panel-bd"
-            style="display: flex; flex-direction: column; gap: 12px"
-          >
-            <div
-              style="
-                background: rgba(245, 158, 11, 0.08);
-                border-left: 4px solid var(--amber);
-                padding: 12px;
-                border-radius: 6px;
-              "
-            >
-              <div
-                style="
-                  color: var(--amber);
-                  font-weight: 800;
-                  font-size: 9.5px;
-                  margin-bottom: 5px;
-                "
-              >
-                📌 TRẠNG THÁI TO-DO LIST
-              </div>
-              <div
-                id="insightOpen"
-                style="
-                  font-size: 10.5px;
-                  line-height: 1.5;
-                  font-weight: 600;
-                  color: var(--text-main);
-                "
-              >
-                Đang nạp dữ liệu...
-              </div>
+          <div class="panel-bd" style="display:flex;flex-direction:column;gap:12px;">
+            <div style="background:rgba(245,158,11,0.08);border-left:4px solid var(--amber);padding:12px;border-radius:6px;">
+              <div style="color:var(--amber);font-weight:800;font-size:9.5px;margin-bottom:5px;">📌 TRẠNG THÁI TO-DO LIST</div>
+              <div id="insightOpen" style="font-size:10.5px;line-height:1.5;font-weight:600;color:var(--text-main);">Đang nạp dữ liệu...</div>
             </div>
-            <div
-              style="
-                background: rgba(139, 92, 246, 0.08);
-                border-left: 4px solid var(--purple);
-                padding: 12px;
-                border-radius: 6px;
-              "
-            >
-              <div
-                style="
-                  color: var(--purple);
-                  font-weight: 800;
-                  font-size: 9.5px;
-                  margin-bottom: 5px;
-                "
-              >
-                ⚡ CHỈ SỐ THỜI GIAN SLA
-              </div>
-              <div
-                id="insightSpeed"
-                style="
-                  font-size: 10.5px;
-                  line-height: 1.5;
-                  font-weight: 600;
-                  color: var(--text-main);
-                "
-              >
-                Đang tính toán tốc độ...
-              </div>
+            <div style="background:rgba(139,92,246,0.08);border-left:4px solid var(--purple);padding:12px;border-radius:6px;">
+              <div style="color:var(--purple);font-weight:800;font-size:9.5px;margin-bottom:5px;">⚡ CHỈ SỐ THỜI GIAN SLA</div>
+              <div id="insightSpeed" style="font-size:10.5px;line-height:1.5;font-weight:600;color:var(--text-main);">Đang tính toán tốc độ...</div>
             </div>
-            <div
-              style="
-                background: rgba(37, 99, 235, 0.08);
-                border-left: 4px solid var(--blue);
-                padding: 12px;
-                border-radius: 6px;
-              "
-            >
-              <div
-                style="
-                  color: var(--blue);
-                  font-weight: 800;
-                  font-size: 9.5px;
-                  margin-bottom: 5px;
-                "
-              >
-                🎯 TẦN SUẤT LỖI GẶP PHẢI
-              </div>
-              <div
-                id="insightTop"
-                style="
-                  font-size: 10.5px;
-                  line-height: 1.5;
-                  font-weight: 600;
-                  color: var(--text-main);
-                "
-              >
-                Đang phân tích cụm lỗi...
-              </div>
+            <div style="background:rgba(37,99,235,0.08);border-left:4px solid var(--blue);padding:12px;border-radius:6px;">
+              <div style="color:var(--blue);font-weight:800;font-size:9.5px;margin-bottom:5px;">🎯 TẦN SUẤT LỖI GẶP PHẢI</div>
+              <div id="insightTop" style="font-size:10.5px;line-height:1.5;font-weight:600;color:var(--text-main);">Đang phân tích cụm lỗi...</div>
+            </div>
+            <!-- INSIGHT MỚI: GIỜ CAO ĐIỂM -->
+            <div style="background:rgba(225,29,72,0.08);border-left:4px solid var(--rose);padding:12px;border-radius:6px;">
+              <div style="color:var(--rose);font-weight:800;font-size:9.5px;margin-bottom:5px;">🕐 GIỜ CAO ĐIỂM TIẾP NHẬN</div>
+              <div id="insightPeak" style="font-size:10.5px;line-height:1.5;font-weight:600;color:var(--text-main);">Đang phân tích khung giờ...</div>
             </div>
           </div>
         </div>
+
       </div>
 
       <div class="resize-handle" id="rh-lc"></div>
 
+      <!-- COL CENTER -->
       <div class="hud-col" id="col-center">
-        <div
-          class="panel"
-          id="panel-esc"
-          style="
-            flex-grow: 1;
-            min-height: 180px;
-            display: flex;
-            flex-direction: column;
-            border-color: rgba(37, 99, 235, 0.3);
-          "
-        >
-          <div
-            class="panel-hd"
-            style="
-              background: rgba(37, 99, 235, 0.05);
-              flex-shrink: 0;
-              border-bottom: 1px solid rgba(37, 99, 235, 0.2);
-            "
-          >
-            <span style="color: var(--blue)">DANH SÁCH PHIẾU CHỜ XỬ LÝ</span>
-            <span
-              style="
-                font-size: 9px;
-                font-weight: 600;
-                color: var(--blue);
-                background: rgba(37, 99, 235, 0.1);
-                padding: 3px 8px;
-                border-radius: 4px;
-              "
-              >Ưu tiên</span
-            >
+
+        <!-- Pending Panel -->
+        <div class="panel" id="panel-esc" style="flex-grow:1;min-height:180px;display:flex;flex-direction:column;border-color:rgba(37,99,235,0.3);">
+          <div class="panel-hd" style="background:rgba(37,99,235,0.05);flex-shrink:0;border-bottom:1px solid rgba(37,99,235,0.2);">
+            <span style="color:var(--blue)">DANH SÁCH PHIẾU CHỜ XỬ LÝ</span>
+            <span style="font-size:9px;font-weight:600;color:var(--blue);background:rgba(37,99,235,0.1);padding:3px 8px;border-radius:4px;">Ưu tiên</span>
           </div>
-          <div
-            class="panel-bd"
-            style="
-              padding: 0 10px 10px 10px;
-              overflow: hidden;
-              display: flex;
-              flex-direction: column;
-              flex-grow: 1;
-            "
-          >
-            <table
-              class="mini-table"
-              id="pendingTable"
-              style="flex-grow: 1; display: flex; flex-direction: column"
-            >
-              <thead style="flex-shrink: 0">
-                <tr
-                  class="no-hover"
-                  style="
-                    border-bottom: 1px solid rgba(37, 99, 235, 0.3);
-                    margin-bottom: 4px;
-                    display: flex;
-                    width: 100%;
-                  "
-                >
-                  <th
-                    style="
-                      text-align: left;
-                      flex: 0 0 60px;
-                      padding: 8px 4px;
-                      color: var(--text-muted);
-                    "
-                  >
-                    ID
-                  </th>
-                  <th
-                    style="
-                      text-align: left;
-                      flex: 1;
-                      padding: 8px 4px;
-                      color: var(--text-muted);
-                    "
-                  >
-                    Vị trí / Kênh
-                  </th>
-                  <th
-                    style="
-                      text-align: left;
-                      flex: 2;
-                      padding: 8px 4px;
-                      color: var(--text-muted);
-                    "
-                  >
-                    Tiêu đề Phiếu
-                  </th>
-                  <th
-                    style="
-                      text-align: center;
-                      flex: 0 0 85px;
-                      padding: 8px 4px;
-                      color: var(--text-muted);
-                    "
-                  >
-                    Ngày nhận
-                  </th>
+          <div class="panel-bd" style="padding:0 10px 10px 10px;overflow:hidden;display:flex;flex-direction:column;flex-grow:1;">
+            <table class="mini-table" id="pendingTable" style="flex-grow:1;display:flex;flex-direction:column;">
+              <thead style="flex-shrink:0;">
+                <tr class="no-hover" style="border-bottom:1px solid rgba(37,99,235,0.3);margin-bottom:4px;display:flex;width:100%;">
+                  <th style="text-align:left;flex:0 0 58px;padding:8px 4px;color:var(--text-muted);">ID</th>
+                  <th style="text-align:left;flex:1;padding:8px 4px;color:var(--text-muted);">Vị trí / Kênh</th>
+                  <th style="text-align:left;flex:2;padding:8px 4px;color:var(--text-muted);">Tiêu đề Phiếu</th>
+                  <th style="text-align:center;flex:0 0 70px;padding:8px 4px;color:var(--text-muted);">Ngày nhận</th>
+                  <th style="text-align:center;flex:0 0 56px;padding:8px 4px;color:var(--text-muted);">Chờ</th>
                 </tr>
               </thead>
               <tbody id="pendingBody"></tbody>
@@ -1155,64 +324,70 @@
           </div>
         </div>
 
-        <div
-          class="panel"
-          id="panel-chart"
-          style="flex-shrink: 0; min-height: 220px"
-        >
-          <div class="panel-hd">Biểu đồ lưu lượng xử lý theo thời gian</div>
-          <div class="panel-bd" style="padding: 5px 14px">
+        <!-- Chart + Hour Heatmap -->
+        <div class="panel" id="panel-chart" style="flex-shrink:0;min-height:220px;">
+          <div class="panel-hd">
+            <span>Biểu đồ lưu lượng xử lý theo thời gian</span>
+          </div>
+          <div class="panel-bd" style="padding:5px 14px;">
             <div class="chart-wrap"><canvas id="timeChart"></canvas></div>
           </div>
         </div>
+
+        <!-- Giờ cao điểm panel (MỚI) -->
+        <div class="panel" id="panel-hour" style="flex-shrink:0;">
+          <div class="panel-hd">
+            <span>Phân bố phiếu theo giờ trong ngày</span>
+            <span id="hourPanelMeta" style="font-size:9px;color:var(--text-muted);font-weight:600;"></span>
+          </div>
+          <div class="panel-bd" style="padding:10px 14px;">
+            <div class="hour-grid" id="hourGrid"></div>
+            <div class="hour-peak-row">
+              <div>Giờ thấp nhất: <span id="hourMin" style="color:var(--green);">—</span></div>
+              <div>Giờ cao điểm: <span id="hourMax" style="color:var(--rose);">—</span></div>
+              <div>Tổng có giờ: <span id="hourTotal" style="color:var(--blue);">—</span></div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <div class="resize-handle" id="rh-cr"></div>
 
+      <!-- COL RIGHT -->
       <div class="hud-col" id="col-right">
-        <div class="panel" id="panel-type" style="flex-grow: 1">
+        <div class="panel" id="panel-type" style="flex-grow:1;">
           <div class="panel-hd">Phân loại lỗi thường xử lý (Main Type)</div>
-          <div class="panel-bd" style="padding: 5px 14px">
+          <div class="panel-bd" style="padding:5px 14px;">
             <table class="mini-table" id="mainTable"></table>
           </div>
         </div>
-        <div class="panel" id="panel-group" style="flex-grow: 1">
+        <div class="panel" id="panel-group" style="flex-grow:1;">
           <div class="panel-hd">Vấn đề cụ thể (Type Issue)</div>
-          <div class="panel-bd" style="padding: 5px 14px">
+          <div class="panel-bd" style="padding:5px 14px;">
             <table class="mini-table" id="typeTable"></table>
           </div>
         </div>
-        <div class="panel" id="panel-loc" style="flex-grow: 1">
+        <div class="panel" id="panel-loc" style="flex-grow:1;">
           <div class="panel-hd">Các vị trí thường hỗ trợ (Location)</div>
-          <div class="panel-bd" style="padding: 5px 14px">
+          <div class="panel-bd" style="padding:5px 14px;">
             <table class="mini-table" id="locationTable"></table>
           </div>
         </div>
       </div>
     </div>
 
+    <!-- MODAL -->
     <div class="modal-overlay" id="detailModal">
       <div class="modal-content">
         <div class="modal-hd">
-          <div style="display: flex; align-items: baseline; gap: 8px">
+          <div style="display:flex;align-items:baseline;gap:8px;">
             <div class="modal-title" id="modalTitle">Danh sách Ticket</div>
             <div class="modal-meta" id="modalMeta"></div>
           </div>
-          <div style="display: flex; align-items: center; gap: 8px">
-            <input
-              type="text"
-              id="modalSearch"
-              class="modal-search"
-              placeholder="Tìm kiếm nhanh..."
-              oninput="filterModalTable()"
-            />
-            <button
-              class="btn-xlsx"
-              onclick="exportXLSX()"
-              title="Xuất file Excel (.xlsx)"
-            >
-              ⬇️ TẢI XLSX
-            </button>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input type="text" id="modalSearch" class="modal-search" placeholder="Tìm kiếm nhanh..." oninput="filterModalTable()"/>
+            <button class="btn-xlsx" onclick="exportXLSX()" title="Xuất file Excel (.xlsx)">⬇️ TẢI XLSX</button>
             <button class="close-btn" onclick="closeModal()">×</button>
           </div>
         </div>
@@ -1220,146 +395,61 @@
           <table class="detail-table" id="detailTableFull">
             <thead>
               <tr>
-                <th width="75" onclick="sortModal('id')">
-                  Ticket ID <span class="sort-icon" id="sort-id"></span>
-                </th>
-                <th width="85" onclick="sortModal('date')">
-                  Ngày <span class="sort-icon" id="sort-date"></span>
-                </th>
-                <th width="140" onclick="sortModal('location')">
-                  Location <span class="sort-icon" id="sort-location"></span>
-                </th>
-                <th width="140" onclick="sortModal('group')">
-                  Group <span class="sort-icon" id="sort-group"></span>
-                </th>
-                <th width="140" onclick="sortModal('typeIssue')">
-                  Type Issue <span class="sort-icon" id="sort-typeIssue"></span>
-                </th>
-                <th onclick="sortModal('title')">
-                  Tiêu đề <span class="sort-icon" id="sort-title"></span>
-                </th>
-                <th width="140" onclick="sortModal('staff')">
-                  Người xử lý <span class="sort-icon" id="sort-staff"></span>
-                </th>
-                <th width="130" onclick="sortModal('status')">
-                  Trạng thái <span class="sort-icon" id="sort-status"></span>
-                </th>
+                <th width="75" onclick="sortModal('id')">Ticket ID <span class="sort-icon" id="sort-id"></span></th>
+                <th width="85" onclick="sortModal('date')">Ngày <span class="sort-icon" id="sort-date"></span></th>
+                <th width="140" onclick="sortModal('location')">Location <span class="sort-icon" id="sort-location"></span></th>
+                <th width="140" onclick="sortModal('group')">Group <span class="sort-icon" id="sort-group"></span></th>
+                <th width="140" onclick="sortModal('typeIssue')">Type Issue <span class="sort-icon" id="sort-typeIssue"></span></th>
+                <th onclick="sortModal('title')">Tiêu đề <span class="sort-icon" id="sort-title"></span></th>
+                <th width="140" onclick="sortModal('staff')">Người xử lý <span class="sort-icon" id="sort-staff"></span></th>
+                <th width="130" onclick="sortModal('status')">Trạng thái <span class="sort-icon" id="sort-status"></span></th>
               </tr>
             </thead>
             <tbody id="modalBody"></tbody>
           </table>
         </div>
-
         <div class="sub-modal" id="ticketFullDetail">
           <div class="sub-modal-hd">
-            <div style="display: flex; align-items: center; gap: 10px">
-              <button
-                class="btn"
-                style="background: var(--text-muted)"
-                onclick="closeFullDetail()"
-              >
-                ← Quay lại
-              </button>
-              <div class="modal-title" style="font-size: 13px" id="tk-title">
-                Chi tiết Phiếu
-              </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <button class="btn" style="background:var(--text-muted);" onclick="closeFullDetail()">← Quay lại</button>
+              <div class="modal-title" style="font-size:13px;" id="tk-title">Chi tiết Phiếu</div>
             </div>
-            <div style="display: flex; align-items: center; gap: 10px">
-              <button
-                class="btn"
-                id="btnToggleEdit"
-                style="background: var(--amber); display: none !important"
-                onclick="unlockEditMode()"
-              >
-                🔒 Sửa thông tin
-              </button>
-              <button
-                class="btn"
-                id="btnSaveWeb"
-                style="background: var(--green); display: none !important"
-                onclick="saveDataFromWeb()"
-              >
-                💾 LƯU LÊN SHEET
-              </button>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <button class="btn" id="btnToggleEdit" style="background:var(--amber);display:none !important;" onclick="unlockEditMode()">🔒 Sửa thông tin</button>
+              <button class="btn" id="btnSaveWeb" style="background:var(--green);display:none !important;" onclick="saveDataFromWeb()">💾 LƯU LÊN SHEET</button>
               <div id="tk-badge"></div>
             </div>
           </div>
           <div class="sub-modal-bd">
             <div>
-              <div class="dt-group">
-                <div class="dt-lbl">Mã Ticket</div>
-                <div class="dt-val dt-val-mono" id="tk-id"></div>
-              </div>
-              <div class="dt-group">
-                <div class="dt-lbl">Nội dung (Title)</div>
-                <div
-                  class="dt-val"
-                  id="tk-content"
-                  style="font-size: 14px; color: var(--blue)"
-                ></div>
-              </div>
+              <div class="dt-group"><div class="dt-lbl">Mã Ticket</div><div class="dt-val dt-val-mono" id="tk-id"></div></div>
+              <div class="dt-group"><div class="dt-lbl">Nội dung (Title)</div><div class="dt-val" id="tk-content" style="font-size:14px;color:var(--blue)"></div></div>
               <div class="dt-group">
                 <div class="dt-lbl">Mô tả chi tiết (Description)</div>
-                <div
-                  class="dt-val"
-                  id="tk-desc-view"
-                  style="white-space: pre-wrap"
-                ></div>
-                <textarea
-                  id="tk-desc-edit"
-                  class="edit-input"
-                  style="height: 120px; display: none; white-space: pre-wrap"
-                ></textarea>
+                <div class="dt-val" id="tk-desc-view" style="white-space:pre-wrap;"></div>
+                <textarea id="tk-desc-edit" class="edit-input" style="height:120px;display:none;white-space:pre-wrap;"></textarea>
               </div>
-              <div
-                class="dt-group"
-                style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px"
-              >
-                <div>
-                  <div class="dt-lbl">Ngày ghi nhận</div>
-                  <div class="dt-val" id="tk-date"></div>
-                </div>
-                <div>
-                  <div class="dt-lbl">Thời gian bắt đầu / kết thúc</div>
-                  <div class="dt-val">
-                    <span id="tk-start"></span> - <span id="tk-end"></span>
-                  </div>
-                </div>
+              <div class="dt-group" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div><div class="dt-lbl">Ngày ghi nhận</div><div class="dt-val" id="tk-date"></div></div>
+                <div><div class="dt-lbl">Thời gian bắt đầu / kết thúc</div><div class="dt-val"><span id="tk-start"></span> - <span id="tk-end"></span></div></div>
               </div>
             </div>
             <div>
-              <div class="dt-group">
-                <div class="dt-lbl">Vị trí (Location) / Kênh</div>
-                <div class="dt-val" id="tk-loc"></div>
-              </div>
+              <div class="dt-group"><div class="dt-lbl">Vị trí (Location) / Kênh</div><div class="dt-val" id="tk-loc"></div></div>
               <div class="dt-group">
                 <div class="dt-lbl">Nhóm xử lý (Group)</div>
                 <div class="dt-val" id="tk-group-view"></div>
-                <input
-                  type="text"
-                  id="tk-group-edit"
-                  class="edit-input"
-                  style="display: none"
-                />
+                <input type="text" id="tk-group-edit" class="edit-input" style="display:none;"/>
               </div>
               <div class="dt-group">
                 <div class="dt-lbl">Người xử lý (Staff)</div>
                 <div class="dt-val" id="tk-staff-view"></div>
-                <input
-                  type="text"
-                  id="tk-staff-edit"
-                  class="edit-input"
-                  style="display: none"
-                />
+                <input type="text" id="tk-staff-edit" class="edit-input" style="display:none;"/>
               </div>
               <div class="dt-group">
                 <div class="dt-lbl">Trạng thái</div>
                 <div class="dt-val" id="tk-status-view"></div>
-                <select
-                  id="tk-status-edit"
-                  class="edit-input"
-                  style="display: none"
-                >
+                <select id="tk-status-edit" class="edit-input" style="display:none;">
                   <option value="0 (Mới tiếp nhận)">0 (Mới tiếp nhận)</option>
                   <option value="1 (Đang xử lý)">1 (Đang xử lý)</option>
                   <option value="2 (Đợi phản hồi)">2 (Đợi phản hồi)</option>
@@ -1367,18 +457,9 @@
                   <option value="4 (Đóng)">4 (Đóng)</option>
                 </select>
               </div>
-              <div
-                class="dt-group"
-                style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px"
-              >
-                <div>
-                  <div class="dt-lbl">Phân loại lỗi chính (Main Type)</div>
-                  <div class="dt-val" id="tk-main"></div>
-                </div>
-                <div>
-                  <div class="dt-lbl">Vấn đề cụ thể (Type Issue)</div>
-                  <div class="dt-val" id="tk-sub"></div>
-                </div>
+              <div class="dt-group" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div><div class="dt-lbl">Phân loại lỗi chính (Main Type)</div><div class="dt-val" id="tk-main"></div></div>
+                <div><div class="dt-lbl">Vấn đề cụ thể (Type Issue)</div><div class="dt-val" id="tk-sub"></div></div>
               </div>
             </div>
           </div>
@@ -1388,1063 +469,797 @@
 
     <div class="layout-toolbar" id="layoutToolbar">
       <span class="layout-toolbar-label">⚙️ Chế độ kéo thả</span>
-      <button
-        class="btn"
-        style="background: var(--green)"
-        onclick="saveAndExitLayout()"
-      >
-        💾 Lưu Layout
-      </button>
-      <button
-        class="btn"
-        style="background: var(--amber)"
-        onclick="resetLayout()"
-      >
-        ↺ Đặt lại
-      </button>
-      <button
-        class="btn"
-        style="background: var(--red)"
-        onclick="cancelLayoutEdit()"
-      >
-        ✕ Hủy
-      </button>
+      <button class="btn" style="background:var(--green);" onclick="saveAndExitLayout()">💾 Lưu Layout</button>
+      <button class="btn" style="background:var(--amber);" onclick="resetLayout()">↺ Đặt lại</button>
+      <button class="btn" style="background:var(--red);" onclick="cancelLayoutEdit()">✕ Hủy</button>
     </div>
 
     <script>
       // =========================================================
-      // HƯỚNG DẪN CẤU HÌNH NHÂN VIÊN ĐỂ TẠO TEMPLATE MỚI
+      // CẤU HÌNH
       // =========================================================
-      // Mỗi nhân viên sẽ có 1 file Dashboard riêng biệt.
-      // Để tạo file cho người khác, bạn CẦN THAY ĐỔI duy nhất dòng TARGET_STAFF bên dưới.
-      // LƯU Ý: Phải copy đúng tên trên Google Sheet (ví dụ có dấu phẩy, khoảng trắng).
-      // =========================================================
-
-      const TARGET_STAFF = "CHƯƠNG, Lê (CC | HCM)"; // Tên nhân viên cần tạo dashboard
-
-      const SHEET_ID = "199r5uLH2jcgmf0FxlOw4Mfuu4URkZXLnns-xNndBivs";
-      const GID_MAIN = "1690680102"; // Mã tab List Issue
-
-      const WEBHOOK_URL =
-        "https://script.google.com/macros/s/AKfycbz_XXXXXXXXX/exec";
-      const SECURITY_PIN = "1234"; // Mã PIN bảo mật
+      const TARGET_STAFF  = "CHƯƠNG, Lê (CC | HCM)";
+      const SHEET_ID      = "199r5uLH2jcgmf0FxlOw4Mfuu4URkZXLnns-xNndBivs";
+      const GID_MAIN      = "1690680102";
+      const WEBHOOK_URL   = "https://script.google.com/macros/s/AKfycbz_XXXXXXXXX/exec";
+      const SECURITY_PIN  = "1234";
+      const SLA_THRESHOLD = 30; // phút — ngưỡng SLA cảnh báo
 
       // =========================================================
-
       document.getElementById("staffNameDisplay").textContent = TARGET_STAFF;
 
-      let ALL_DATA = [],
-        CURRENT_DATA = [],
-        currentModalData = [];
-      let currentSortCol = "date",
-        currentSortAsc = false;
-      let charts = {},
-        countdown = 300,
-        timerInterval,
-        activeTicket = null;
-      let isLayoutEditMode = false,
-        sortableInstances = [];
+      let ALL_DATA = [], CURRENT_DATA = [], currentModalData = [];
+      let currentSortCol = "date", currentSortAsc = false;
+      let charts = {}, countdown = 300, timerInterval, activeTicket = null;
+      let isLayoutEditMode = false, sortableInstances = [];
 
-      // XỬ LÝ LỖI TRÌNH DUYỆT CHẶN LOCALSTORAGE KHI CHẠY FILE LOCAL
       let isDarkMode = false;
-      try {
-        isDarkMode = localStorage.getItem("theme") === "dark";
-      } catch (e) {}
-
+      try { isDarkMode = localStorage.getItem("theme") === "dark"; } catch(e){}
       setThemeUI();
+
       function toggleTheme() {
         isDarkMode = !isDarkMode;
-        try {
-          localStorage.setItem("theme", isDarkMode ? "dark" : "light");
-        } catch (e) {}
+        try { localStorage.setItem("theme", isDarkMode ? "dark" : "light"); } catch(e){}
         setThemeUI();
         applyRange();
       }
-
       function setThemeUI() {
-        document.documentElement.setAttribute(
-          "data-theme",
-          isDarkMode ? "dark" : "light",
-        );
-        document.getElementById("themeToggle").textContent = isDarkMode
-          ? "☀️"
-          : "🌙";
+        document.documentElement.setAttribute("data-theme", isDarkMode ? "dark" : "light");
+        document.getElementById("themeToggle").textContent = isDarkMode ? "☀️" : "🌙";
       }
+      function getChartColor() { return isDarkMode ? "#9ca3af" : "#64748b"; }
+      function getGridColor()  { return isDarkMode ? "#374151" : "#e2e8f0"; }
 
-      function getChartColor() {
-        return isDarkMode ? "#9ca3af" : "#64748b";
-      }
-      function getGridColor() {
-        return isDarkMode ? "#374151" : "#e2e8f0";
-      }
-
+      // =========================================================
+      // RESIZE HANDLES
+      // =========================================================
       function initResizeHandles() {
-        setupHandle("rh-lc", "col-left", "col-center");
-        setupHandle("rh-cr", "col-center", "col-right");
+        setupHandle("rh-lc","col-left","col-center");
+        setupHandle("rh-cr","col-center","col-right");
       }
       function setupHandle(handleId, leftId, rightId) {
         const handle = document.getElementById(handleId);
         const leftCol = document.getElementById(leftId);
         const rightCol = document.getElementById(rightId);
-        let dragging = false,
-          startX = 0,
-          startLW = 0,
-          startRW = 0;
-        handle.addEventListener("mousedown", (e) => {
-          dragging = true;
-          startX = e.clientX;
-          startLW = leftCol.getBoundingClientRect().width;
-          startRW = rightCol.getBoundingClientRect().width;
+        let dragging=false, startX=0, startLW=0, startRW=0;
+        handle.addEventListener("mousedown", e => {
+          dragging=true; startX=e.clientX;
+          startLW=leftCol.getBoundingClientRect().width;
+          startRW=rightCol.getBoundingClientRect().width;
           handle.classList.add("rh-active");
-          document.body.style.cursor = "col-resize";
-          document.body.style.userSelect = "none";
+          document.body.style.cursor="col-resize";
+          document.body.style.userSelect="none";
           e.preventDefault();
         });
-        document.addEventListener("mousemove", (e) => {
-          if (!dragging) return;
-          const dx = e.clientX - startX;
-          const total = startLW + startRW;
-          const newLW = Math.max(170, Math.min(total - 220, startLW + dx));
-          const newRW = total - newLW;
-          leftCol.style.width = newLW + "px";
-          leftCol.style.flex = "none";
-          rightCol.style.width = newRW + "px";
-          rightCol.style.flex = "none";
+        document.addEventListener("mousemove", e => {
+          if(!dragging) return;
+          const dx=e.clientX-startX, total=startLW+startRW;
+          const newLW=Math.max(170,Math.min(total-220,startLW+dx));
+          const newRW=total-newLW;
+          leftCol.style.width=newLW+"px"; leftCol.style.flex="none";
+          rightCol.style.width=newRW+"px"; rightCol.style.flex="none";
         });
         document.addEventListener("mouseup", () => {
-          if (dragging) {
-            dragging = false;
-            handle.classList.remove("rh-active");
-            document.body.style.cursor = "";
-            document.body.style.userSelect = "";
-            saveColWidths();
-          }
+          if(dragging){ dragging=false; handle.classList.remove("rh-active"); document.body.style.cursor=""; document.body.style.userSelect=""; saveColWidths(); }
         });
         handle.addEventListener("dblclick", () => {
-          leftCol.style.width = "";
-          leftCol.style.flex = "";
-          rightCol.style.width = "";
-          rightCol.style.flex = "";
-          if (leftId === "col-left") {
-            leftCol.style.width = "22%";
-            leftCol.style.flex = "none";
-          } else if (leftId === "col-center") {
-            leftCol.style.flex = "1";
-            rightCol.style.width = "28%";
-            rightCol.style.flex = "none";
-          }
+          leftCol.style.width=""; leftCol.style.flex="";
+          rightCol.style.width=""; rightCol.style.flex="";
+          if(leftId==="col-left"){ leftCol.style.width="22%"; leftCol.style.flex="none"; }
+          else if(leftId==="col-center"){ leftCol.style.flex="1"; rightCol.style.width="28%"; rightCol.style.flex="none"; }
           saveColWidths();
         });
       }
-
       function saveColWidths() {
-        const left = document.getElementById("col-left"),
-          center = document.getElementById("col-center"),
-          right = document.getElementById("col-right");
-        try {
-          localStorage.setItem(
-            "colWidthsStaffV35",
-            JSON.stringify({
-              left: left.style.width || "",
-              leftFlex: left.style.flex || "",
-              center: center.style.width || "",
-              centerFlex: center.style.flex || "",
-              right: right.style.width || "",
-              rightFlex: right.style.flex || "",
-            }),
-          );
-        } catch (e) {}
+        const l=document.getElementById("col-left"), c=document.getElementById("col-center"), r=document.getElementById("col-right");
+        try { localStorage.setItem("colWidthsStaffV36", JSON.stringify({left:l.style.width,leftFlex:l.style.flex,center:c.style.width,centerFlex:c.style.flex,right:r.style.width,rightFlex:r.style.flex})); } catch(e){}
       }
       function loadColWidths() {
         try {
-          const saved = localStorage.getItem("colWidthsStaffV35");
-          if (!saved) return;
-          const w = JSON.parse(saved),
-            left = document.getElementById("col-left"),
-            center = document.getElementById("col-center"),
-            right = document.getElementById("col-right");
-          if (w.left) {
-            left.style.width = w.left;
-            left.style.flex = w.leftFlex || "none";
-          }
-          if (w.center) {
-            center.style.width = w.center;
-            center.style.flex = w.centerFlex || "1";
-          }
-          if (w.right) {
-            right.style.width = w.right;
-            right.style.flex = w.rightFlex || "none";
-          }
-        } catch (e) {}
+          const saved=localStorage.getItem("colWidthsStaffV36");
+          if(!saved) return;
+          const w=JSON.parse(saved), l=document.getElementById("col-left"), c=document.getElementById("col-center"), r=document.getElementById("col-right");
+          if(w.left){ l.style.width=w.left; l.style.flex=w.leftFlex||"none"; }
+          if(w.center){ c.style.width=w.center; c.style.flex=w.centerFlex||"1"; }
+          if(w.right){ r.style.width=w.right; r.style.flex=w.rightFlex||"none"; }
+        } catch(e){}
       }
 
+      // =========================================================
+      // LAYOUT EDIT
+      // =========================================================
       function toggleLayoutEdit() {
-        if (!isLayoutEditMode) {
-          let pin = prompt("Nhập mã PIN để mở khóa kéo thả sắp xếp bảng:");
-          if (pin !== SECURITY_PIN) {
-            if (pin !== null) alert("❌ Sai mã PIN.");
-            return;
-          }
-        }
-        isLayoutEditMode = !isLayoutEditMode;
-        if (isLayoutEditMode) enterLayoutEdit();
-        else saveAndExitLayout();
+        if(!isLayoutEditMode) { let pin=prompt("Nhập mã PIN để mở khóa kéo thả:"); if(pin!==SECURITY_PIN){ if(pin!==null) alert("❌ Sai mã PIN."); return; } }
+        isLayoutEditMode=!isLayoutEditMode;
+        if(isLayoutEditMode) enterLayoutEdit(); else saveAndExitLayout();
       }
       function enterLayoutEdit() {
-        isLayoutEditMode = true;
-        document.getElementById("btnEditLayout").innerHTML = "⚙️ Đang sửa...";
-        document.getElementById("btnEditLayout").style.color = "var(--green)";
+        isLayoutEditMode=true;
+        document.getElementById("btnEditLayout").innerHTML="⚙️ Đang sửa...";
+        document.getElementById("btnEditLayout").style.color="var(--green)";
         document.getElementById("layoutToolbar").classList.add("visible");
-        document
-          .querySelectorAll(".panel")
-          .forEach((p) => p.classList.add("draggable"));
-        ["col-left", "col-center", "col-right"].forEach((colId) => {
-          const el = document.getElementById(colId);
-          if (el)
-            sortableInstances.push(
-              new Sortable(el, { animation: 150, group: "shared" }),
-            );
+        document.querySelectorAll(".panel").forEach(p=>p.classList.add("draggable"));
+        ["col-left","col-center","col-right"].forEach(colId=>{
+          const el=document.getElementById(colId);
+          if(el) sortableInstances.push(new Sortable(el,{animation:150,group:"shared"}));
         });
       }
       function saveAndExitLayout() {
-        const layout = {
-          "col-left": Array.from(document.getElementById("col-left").children)
-            .map((e) => e.id)
-            .filter(Boolean),
-          "col-center": Array.from(
-            document.getElementById("col-center").children,
-          )
-            .map((e) => e.id)
-            .filter(Boolean),
-          "col-right": Array.from(document.getElementById("col-right").children)
-            .map((e) => e.id)
-            .filter(Boolean),
-        };
-        try {
-          localStorage.setItem(
-            "dashboardLayoutStaffV35",
-            JSON.stringify(layout),
-          );
-        } catch (e) {}
+        const layout={};
+        ["col-left","col-center","col-right"].forEach(colId=>{
+          layout[colId]=Array.from(document.getElementById(colId).children).map(e=>e.id).filter(Boolean);
+        });
+        try { localStorage.setItem("dashboardLayoutStaffV36", JSON.stringify(layout)); } catch(e){}
         exitLayoutEdit();
       }
-      function cancelLayoutEdit() {
-        exitLayoutEdit();
-      }
+      function cancelLayoutEdit() { exitLayoutEdit(); }
       function exitLayoutEdit() {
-        isLayoutEditMode = false;
-        document.getElementById("btnEditLayout").innerHTML = "⚙️ Layout";
-        document.getElementById("btnEditLayout").style.color =
-          "var(--text-main)";
+        isLayoutEditMode=false;
+        document.getElementById("btnEditLayout").innerHTML="⚙️ Layout";
+        document.getElementById("btnEditLayout").style.color="var(--text-main)";
         document.getElementById("layoutToolbar").classList.remove("visible");
-        document
-          .querySelectorAll(".panel")
-          .forEach((p) => p.classList.remove("draggable"));
-        sortableInstances.forEach((s) => s.destroy());
-        sortableInstances = [];
+        document.querySelectorAll(".panel").forEach(p=>p.classList.remove("draggable"));
+        sortableInstances.forEach(s=>s.destroy()); sortableInstances=[];
       }
       function resetLayout() {
-        if (!confirm("Đặt lại bố cục và kích thước cột về mặc định?")) return;
-        try {
-          localStorage.removeItem("dashboardLayoutStaffV35");
-          localStorage.removeItem("colWidthsStaffV35");
-        } catch (e) {}
+        if(!confirm("Đặt lại bố cục và kích thước cột về mặc định?")) return;
+        try { localStorage.removeItem("dashboardLayoutStaffV36"); localStorage.removeItem("colWidthsStaffV36"); } catch(e){}
         location.reload();
       }
       function loadLayoutState() {
         try {
-          const saved = localStorage.getItem("dashboardLayoutStaffV35");
-          if (!saved) return;
-          const layout = JSON.parse(saved);
-          for (const colId in layout) {
-            const colEl = document.getElementById(colId);
-            if (!colEl) continue;
-            layout[colId].forEach((panelId) => {
-              const panelEl = document.getElementById(panelId);
-              if (panelEl) colEl.appendChild(panelEl);
-            });
+          const saved=localStorage.getItem("dashboardLayoutStaffV36");
+          if(!saved) return;
+          const layout=JSON.parse(saved);
+          for(const colId in layout){
+            const colEl=document.getElementById(colId); if(!colEl) continue;
+            layout[colId].forEach(panelId=>{ const panelEl=document.getElementById(panelId); if(panelEl) colEl.appendChild(panelEl); });
           }
-        } catch (e) {}
+        } catch(e){}
       }
 
+      // =========================================================
+      // DATE UTILS
+      // =========================================================
       function initDefaultDates() {
-        const today = new Date();
-        document.getElementById("periodMode").value = "month";
-        document.getElementById("fromDate").value = fmtDate(
-          new Date(today.getFullYear(), today.getMonth(), 1),
-        );
-        document.getElementById("toDate").value = fmtDate(
-          new Date(today.getFullYear(), today.getMonth() + 1, 0),
-        );
+        const today=new Date();
+        document.getElementById("periodMode").value="month";
+        document.getElementById("fromDate").value=fmtDate(new Date(today.getFullYear(),today.getMonth(),1));
+        document.getElementById("toDate").value=fmtDate(new Date(today.getFullYear(),today.getMonth()+1,0));
       }
-
       function onHeaderModeChange() {
-        const mode = document.getElementById("periodMode").value;
-        if (mode === "custom") return;
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        if (mode === "day") {
-          document.getElementById("fromDate").value = fmtDate(today);
-          document.getElementById("toDate").value = fmtDate(today);
-        } else if (mode === "week") {
-          const dayOfWeek = today.getDay() || 7;
-          const startOfWeek = new Date(today);
-          startOfWeek.setDate(today.getDate() - dayOfWeek + 1);
-          const endOfWeek = new Date(startOfWeek);
-          endOfWeek.setDate(startOfWeek.getDate() + 6);
-          document.getElementById("fromDate").value = fmtDate(startOfWeek);
-          document.getElementById("toDate").value = fmtDate(endOfWeek);
-        } else if (mode === "month") {
-          document.getElementById("fromDate").value = fmtDate(
-            new Date(today.getFullYear(), today.getMonth(), 1),
-          );
-          document.getElementById("toDate").value = fmtDate(
-            new Date(today.getFullYear(), today.getMonth() + 1, 0),
-          );
+        const mode=document.getElementById("periodMode").value;
+        if(mode==="custom") return;
+        const today=new Date(); today.setHours(0,0,0,0);
+        if(mode==="day"){
+          document.getElementById("fromDate").value=fmtDate(today);
+          document.getElementById("toDate").value=fmtDate(today);
+        } else if(mode==="week"){
+          const dow=today.getDay()||7;
+          const s=new Date(today); s.setDate(today.getDate()-dow+1);
+          const e=new Date(s); e.setDate(s.getDate()+6);
+          document.getElementById("fromDate").value=fmtDate(s);
+          document.getElementById("toDate").value=fmtDate(e);
+        } else if(mode==="month"){
+          document.getElementById("fromDate").value=fmtDate(new Date(today.getFullYear(),today.getMonth(),1));
+          document.getElementById("toDate").value=fmtDate(new Date(today.getFullYear(),today.getMonth()+1,0));
         }
         applyRange();
       }
-
-      function startAutoRefresh() {
-        if (timerInterval) clearInterval(timerInterval);
-        countdown = 300;
-        timerInterval = setInterval(() => {
-          if (
-            document
-              .getElementById("detailModal")
-              .classList.contains("active") ||
-            isLayoutEditMode
-          )
-            return;
-          countdown--;
-          const m = String(Math.floor(countdown / 60)).padStart(2, "0");
-          const s = String(countdown % 60).padStart(2, "0");
-          document.getElementById("refresh-timer").textContent = `${m}:${s}`;
-          if (countdown <= 0) fetchFromGViz();
-        }, 1000);
-      }
-
-      function escapeHtml(s) {
-        return String(s || "")
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;");
-      }
       function parseDate(s) {
-        if (!s) return null;
-        const p = s.split("-");
-        if (p.length < 3) return null;
-        const d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
-        return isNaN(d.getTime()) ? null : d;
+        if(!s) return null;
+        const p=s.split("-"); if(p.length<3) return null;
+        const d=new Date(Number(p[0]),Number(p[1])-1,Number(p[2]));
+        return isNaN(d.getTime())?null:d;
       }
       function fmtDate(d) {
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+      }
+      function daysBetween(dateStr) {
+        const d=parseDate(dateStr); if(!d) return 0;
+        const now=new Date(); now.setHours(0,0,0,0);
+        return Math.floor((now-d)/(1000*60*60*24));
       }
 
+      // =========================================================
+      // AUTO REFRESH
+      // =========================================================
+      function startAutoRefresh() {
+        if(timerInterval) clearInterval(timerInterval);
+        countdown=300;
+        timerInterval=setInterval(()=>{
+          if(document.getElementById("detailModal").classList.contains("active")||isLayoutEditMode) return;
+          countdown--;
+          const m=String(Math.floor(countdown/60)).padStart(2,"0");
+          const s=String(countdown%60).padStart(2,"0");
+          document.getElementById("refresh-timer").textContent=`${m}:${s}`;
+          if(countdown<=0) fetchFromGViz();
+        },1000);
+      }
+
+      // =========================================================
+      // PARSE HELPERS
+      // =========================================================
+      function escapeHtml(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
       function parseGvizMinutes(rawStr) {
-        if (!rawStr) return null;
-        let s = String(rawStr);
-        if (s.includes("Date(")) {
-          const m = s.match(/Date\(\d+,\d+,\d+,(\d+),(\d+)/);
-          if (m) return parseInt(m[1]) * 60 + parseInt(m[2]);
-        }
-        if (s.includes("T")) s = s.split("T")[1];
-        if (s.length >= 5)
-          return parseInt(s.substring(0, 2)) * 60 + parseInt(s.substring(3, 5));
+        if(!rawStr) return null;
+        let s=String(rawStr);
+        if(s.includes("Date(")){ const m=s.match(/Date\(\d+,\d+,\d+,(\d+),(\d+)/); if(m) return parseInt(m[1])*60+parseInt(m[2]); }
+        if(s.includes("T")) s=s.split("T")[1];
+        if(s.length>=5) return parseInt(s.substring(0,2))*60+parseInt(s.substring(3,5));
         return null;
       }
-
       function parseTimeGViz(val) {
-        if (!val) return "";
-        const s = String(val);
-        if (s.includes("Date(")) {
-          const m = s.match(/Date\(\d+,\d+,\d+,(\d+),(\d+)/);
-          if (m)
-            return `${String(m[1]).padStart(2, "0")}:${String(m[2]).padStart(2, "0")}`;
-        }
-        if (s.includes("T")) return s.split("T")[1].substring(0, 5);
-        return s.substring(0, 5);
+        if(!val) return "";
+        const s=String(val);
+        if(s.includes("Date(")){ const m=s.match(/Date\(\d+,\d+,\d+,(\d+),(\d+)/); if(m) return `${String(m[1]).padStart(2,"0")}:${String(m[2]).padStart(2,"0")}`; }
+        if(s.includes("T")) return s.split("T")[1].substring(0,5);
+        return s.substring(0,5);
       }
-
       function getStatusClass(x) {
-        const s = String(x.status).toLowerCase();
-        const raw = String(x.status).trim();
-        if (
-          x.isClosed ||
-          raw === "4" ||
-          s.includes("đóng") ||
-          s.includes("hoàn thành") ||
-          s.includes("close")
-        )
-          return "b-done";
-        if (
-          x.isEscalated ||
-          raw === "3" ||
-          s.includes("leo thang") ||
-          s.includes("escalat")
-        )
-          return "b-esc";
-        if (
-          raw === "2" ||
-          s.includes("đợi") ||
-          s.includes("chờ") ||
-          s.includes("phản hồi") ||
-          s.includes("wait")
-        )
-          return "b-wait";
-        if (
-          raw === "1" ||
-          s.includes("đang xử lý") ||
-          s.includes("processing") ||
-          (s.includes("đang") && !s.includes("đang leo"))
-        )
-          return "b-processing";
+        const s=String(x.status).toLowerCase(), raw=String(x.status).trim();
+        if(x.isClosed||raw==="4"||s.includes("đóng")||s.includes("hoàn thành")||s.includes("close")) return "b-done";
+        if(x.isEscalated||raw==="3"||s.includes("leo thang")||s.includes("escalat")) return "b-esc";
+        if(raw==="2"||s.includes("đợi")||s.includes("chờ")||s.includes("phản hồi")||s.includes("wait")) return "b-wait";
+        if(raw==="1"||s.includes("đang xử lý")||s.includes("processing")||(s.includes("đang")&&!s.includes("đang leo"))) return "b-processing";
         return "b-new";
       }
 
-      function unlockEditMode() {
-        let pin = prompt("Vui lòng nhập mã PIN bảo mật cấp quyền quản lý:");
-        if (pin === SECURITY_PIN) {
-          document.getElementById("btnToggleEdit").style.display = "none";
-          document.getElementById("btnSaveWeb").style.display = "block";
-          document.getElementById("tk-desc-edit").value = activeTicket.desc;
-          document.getElementById("tk-group-edit").value = activeTicket.group;
-          document.getElementById("tk-staff-edit").value = activeTicket.staff;
-          document.getElementById("tk-status-edit").value =
-            activeTicket.status.includes("Leo thang") ||
-            activeTicket.status === "3"
-              ? "3 (Leo thang)"
-              : activeTicket.isClosed
-                ? "4 (Đóng)"
-                : activeTicket.status;
-          toggleEditFields(true);
-        } else if (pin !== null) {
-          alert("❌ Sai mã PIN. Bạn không có quyền chỉnh sửa dữ liệu!");
-        }
+      // =========================================================
+      // DELTA HELPER — tính kỳ trước từ ALL_DATA (không cần fetch thêm)
+      // =========================================================
+      function calcPrevPeriod(fromStr, toStr) {
+        const f=parseDate(fromStr), t=parseDate(toStr);
+        if(!f||!t) return null;
+        const span=t-f; // milliseconds
+        const prevTo=new Date(f.getTime()-1);
+        const prevFrom=new Date(prevTo.getTime()-span);
+        return { from: fmtDate(prevFrom), to: fmtDate(prevTo) };
       }
-
-      function toggleEditFields(isEditable) {
-        const displayStyle = isEditable ? "none" : "block";
-        const editStyle = isEditable ? "block" : "none";
-        document.getElementById("tk-desc-view").style.display = displayStyle;
-        document.getElementById("tk-desc-edit").style.display = editStyle;
-        document.getElementById("tk-group-view").style.display = displayStyle;
-        document.getElementById("tk-group-edit").style.display = editStyle;
-        document.getElementById("tk-staff-view").style.display = displayStyle;
-        document.getElementById("tk-staff-edit").style.display = editStyle;
-        document.getElementById("tk-status-view").style.display = displayStyle;
-        document.getElementById("tk-status-edit").style.display = editStyle;
-      }
-
-      async function saveDataFromWeb() {
-        if (!activeTicket) return;
-        const btn = document.getElementById("btnSaveWeb");
-        btn.innerHTML = "⏳ ĐANG ĐỒNG BỘ...";
-        btn.disabled = true;
-        const payload = {
-          id: activeTicket.id,
-          group: document.getElementById("tk-group-edit").value,
-          title_vn: activeTicket.title,
-          mainType: activeTicket.mainType,
-          typeIssue: activeTicket.typeIssue,
-          tag: activeTicket.tag || "",
-          note: document.getElementById("tk-desc-edit").value,
-          channel: activeTicket.location,
-          status: document.getElementById("tk-status-edit").value,
-          assignee: document.getElementById("tk-staff-edit").value,
-          date: activeTicket.date,
-        };
-        try {
-          await fetch(WEBHOOK_URL, {
-            method: "POST",
-            mode: "no-cors",
-            body: JSON.stringify(payload),
-          });
-          alert(
-            "🎉 Cập nhật thành công lên Google Sheet! Biểu đồ sẽ tự làm mới.",
-          );
-          closeModal();
-          fetchFromGViz();
-        } catch (e) {
-          alert("❌ Lỗi đồng bộ đường truyền mạng: " + e.message);
-        } finally {
-          btn.innerHTML = "💾 LƯU LÊN SHEET";
-          btn.disabled = false;
-        }
-      }
-
-      function openDetail(titleText, filterCondition) {
-        const modal = document.getElementById("detailModal");
-        document.getElementById("modalTitle").textContent = titleText;
-        document.getElementById("modalSearch").value = "";
-        currentModalData = CURRENT_DATA.filter(filterCondition);
-        currentSortCol = "date";
-        currentSortAsc = false;
-        currentModalData.sort((a, b) => new Date(b.date) - new Date(a.date));
-        renderModalTable();
-        updateSortIcons();
-        modal.classList.add("active");
-      }
-
-      function renderModalTable() {
-        const body = document.getElementById("modalBody");
-        const visible = currentModalData.filter((x) => {
-          const q = document.getElementById("modalSearch").value.toLowerCase();
-          if (!q) return true;
-          return Object.values(x).join(" ").toLowerCase().includes(q);
+      function filterByRange(arr, fromStr, toStr) {
+        const f=parseDate(fromStr), t=parseDate(toStr);
+        return arr.filter(x=>{
+          if(!x.date) return false;
+          const d=parseDate(x.date);
+          return d&&f&&t&&d>=f&&d<=t;
         });
-        document.getElementById("modalMeta").textContent =
-          `${visible.length.toLocaleString("vi-VN")} / ${currentModalData.length.toLocaleString("vi-VN")} phiếu`;
+      }
 
-        if (visible.length === 0) {
-          body.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:30px;font-weight:600;color:var(--text-muted);">Không có dữ liệu phù hợp</td></tr>`;
+      function renderDelta(elId, curr, prev, lowerIsBetter) {
+        const el=document.getElementById(elId);
+        if(!el) return;
+        if(prev===null||prev===undefined){
+          el.className="kpi-delta neutral";
+          el.innerHTML=`<span class="arrow">—</span><span>vs kỳ trước</span>`;
           return;
         }
-        let html = "";
-        visible.forEach((x) => {
-          const cls = getStatusClass(x);
-          const statusBadge = `<span class="badge ${cls}">${escapeHtml(x.status)}</span>`;
-          html += `<tr onclick="viewFullDetailDirect('${escapeHtml(x.id)}')">
-      <td style="font-family:'DM Mono';font-weight:800; padding:10px 6px;">#${escapeHtml(x.id)}</td>
-      <td>${x.date.split("-").reverse().join("/")}</td>
-      <td style="font-weight:700;">${escapeHtml(x.location)}</td>
-      <td style="color:var(--blue);font-weight:600;">${escapeHtml(x.group)}</td>
-      <td>${escapeHtml(x.typeIssue)}</td>
-      <td>${escapeHtml(x.title)}</td>
-      <td>${escapeHtml(x.staff)}</td>
-      <td>${statusBadge}</td>
-    </tr>`;
+        const diff=curr-prev;
+        if(diff===0){ el.className="kpi-delta neutral"; el.innerHTML=`<span class="arrow">—</span><span>±0 vs kỳ trước</span>`; return; }
+        const isGood = lowerIsBetter ? diff<0 : diff>0;
+        const cls=isGood?"up":"down";
+        const arrow=diff>0?"▲":"▼";
+        const sign=diff>0?"+":"";
+        el.className=`kpi-delta ${cls}`;
+        el.innerHTML=`<span class="arrow">${arrow}</span><span>${sign}${diff} vs kỳ trước</span>`;
+      }
+
+      // =========================================================
+      // SPARKLINE SVG
+      // =========================================================
+      function drawSparkline(svgId, values, color) {
+        const svg=document.getElementById(svgId);
+        if(!svg||!values||values.length<2){ if(svg) svg.innerHTML=""; return; }
+        const W=80, H=28, pad=2;
+        const mn=Math.min(...values), mx=Math.max(...values);
+        const range=mx-mn||1;
+        const pts=values.map((v,i)=>{
+          const x=pad+((W-2*pad)/(values.length-1))*i;
+          const y=H-pad-((v-mn)/range)*(H-2*pad);
+          return `${x},${y}`;
         });
-        body.innerHTML = html;
+        const d="M"+pts.join(" L");
+        const fillPts=`${pts[0].split(",")[0]},${H} ${pts.map(p=>p).join(" ")} ${pts[pts.length-1].split(",")[0]},${H}`;
+        svg.innerHTML=`
+          <polygon points="${fillPts}" fill="${color}" class="sparkline-fill"/>
+          <polyline points="${pts.join(" ")}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`;
       }
 
-      function filterModalTable() {
-        renderModalTable();
-      }
-
-      function viewFullDetailDirect(ticketId) {
-        const tk = ALL_DATA.find((x) => x.id === ticketId);
-        if (!tk) return;
-        activeTicket = tk;
-        // document.getElementById("btnToggleEdit").style.display = "block";
-        // document.getElementById("btnToggleEdit").innerHTML = "🔒 Sửa thông tin";
-        // document.getElementById("btnSaveWeb").style.display = "none";
-        toggleEditFields(false);
-
-        document.getElementById("tk-id").textContent = tk.id;
-        document.getElementById("tk-content").textContent = tk.title;
-        document.getElementById("tk-desc-view").textContent =
-          tk.desc || "Không có mô tả chi tiết.";
-        document.getElementById("tk-date").textContent = tk.date
-          .split("-")
-          .reverse()
-          .join("/");
-        document.getElementById("tk-start").textContent =
-          tk.startTime || "--:--";
-        document.getElementById("tk-end").textContent = tk.endTime || "--:--";
-        document.getElementById("tk-loc").textContent = tk.location;
-        document.getElementById("tk-group-view").textContent = tk.group;
-        document.getElementById("tk-staff-view").textContent = tk.staff;
-        document.getElementById("tk-status-view").textContent = tk.status;
-        document.getElementById("tk-main").textContent = tk.mainType;
-        document.getElementById("tk-sub").textContent = tk.typeIssue;
-        const cls = getStatusClass(tk);
-        const badge = `<span class="badge ${cls}" style="font-size:11px;min-width:120px;">${escapeHtml(tk.status)}</span>`;
-        document.getElementById("tk-badge").innerHTML = badge;
-        document.getElementById("ticketFullDetail").classList.add("show");
-      }
-
-      function closeFullDetail() {
-        document.getElementById("ticketFullDetail").classList.remove("show");
-      }
-      function closeModal() {
-        document.getElementById("detailModal").classList.remove("active");
-        closeFullDetail();
-      }
-
-      function openTicketDirect(ticketId) {
-        const modal = document.getElementById("detailModal");
-        const tk = ALL_DATA.find((x) => x.id === ticketId);
-        if (!tk) return;
-        document.getElementById("modalTitle").textContent =
-          "Xem nhanh Phiếu xử lý";
-        document.getElementById("modalMeta").textContent = `#${ticketId}`;
-        document.getElementById("modalSearch").value = "";
-        document.getElementById("modalBody").innerHTML =
-          `<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--text-muted);font-size:11px;">← Nhấn "Quay lại" để trở về</td></tr>`;
-        currentModalData = [];
-        modal.classList.add("active");
-        viewFullDetailDirect(ticketId);
-      }
-
-      document
-        .getElementById("detailModal")
-        .addEventListener("click", function (e) {
-          if (e.target === this) closeModal();
+      // =========================================================
+      // HOUR HEATMAP
+      // =========================================================
+      function buildHourChart(data) {
+        // Đếm phiếu có startTime theo giờ (0-23)
+        const counts=new Array(24).fill(0);
+        data.forEach(x=>{
+          if(!x.startTime||x.startTime==="--:--") return;
+          const h=parseInt(x.startTime.split(":")[0]);
+          if(!isNaN(h)&&h>=0&&h<=23) counts[h]++;
         });
-      document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") {
-          if (
-            document
-              .getElementById("ticketFullDetail")
-              .classList.contains("show")
-          )
-            closeFullDetail();
-          else closeModal();
-        }
-      });
+        const totalWithHour=counts.reduce((a,b)=>a+b,0);
+        const maxVal=Math.max(...counts)||1;
+        const grid=document.getElementById("hourGrid");
+        if(!grid) return;
 
-      function sortModal(col) {
-        if (currentSortCol === col) currentSortAsc = !currentSortAsc;
-        else {
-          currentSortCol = col;
-          currentSortAsc = true;
+        // Render 2 rows: 0-11 và 12-23 (each cell = 2-hour block for compactness)
+        // Actually render all 24 in 2 rows of 12
+        let html="";
+        for(let h=0;h<24;h++){
+          const v=counts[h];
+          const ratio=v/maxVal;
+          // màu intensity
+          const alpha=0.1+ratio*0.85;
+          const isHot=v===maxVal&&v>0;
+          const bg=isHot
+            ? `rgba(225,29,72,${alpha})`
+            : ratio>0.5
+              ? `rgba(37,99,235,${alpha})`
+              : ratio>0
+                ? `rgba(37,99,235,${alpha})`
+                : "rgba(0,0,0,0.04)";
+          const textColor=ratio>0.4?isDarkMode?"#fff":"#fff":"var(--text-muted)";
+          html+=`<div class="hour-cell" style="background:${bg};" title="${h}:00 — ${v} phiếu">
+            <span class="hc-val" style="color:${textColor};">${v||""}</span>
+            <span class="hc-lbl">${String(h).padStart(2,"0")}h</span>
+          </div>`;
         }
-        currentModalData.sort((a, b) => {
-          let vA = a[col] ?? "",
-            vB = b[col] ?? "";
-          if (col === "id")
-            return currentSortAsc
-              ? (Number(vA) || 0) - (Number(vB) || 0)
-              : (Number(vB) || 0) - (Number(vA) || 0);
-          if (col === "date")
-            return currentSortAsc
-              ? new Date(vA) - new Date(vB)
-              : new Date(vB) - new Date(vA);
-          vA = String(vA).toLowerCase();
-          vB = String(vB).toLowerCase();
-          if (vA < vB) return currentSortAsc ? -1 : 1;
-          if (vA > vB) return currentSortAsc ? 1 : -1;
-          return 0;
-        });
-        renderModalTable();
-        updateSortIcons();
-      }
-      function updateSortIcons() {
-        document
-          .querySelectorAll(".sort-icon")
-          .forEach((el) => (el.innerHTML = ""));
-        const t = document.getElementById(`sort-${currentSortCol}`);
-        if (t) t.innerHTML = currentSortAsc ? "▲" : "▼";
+        grid.innerHTML=html;
+
+        // Peak / min
+        const peakH=counts.indexOf(maxVal);
+        const nonZero=counts.map((v,i)=>({v,i})).filter(x=>x.v>0);
+        const minH=nonZero.length>0?nonZero.reduce((a,b)=>a.v<=b.v?a:b).i:-1;
+
+        document.getElementById("hourMax").textContent=maxVal>0?`${String(peakH).padStart(2,"0")}:00 (${maxVal} phiếu)`:"—";
+        document.getElementById("hourMin").textContent=minH>=0?`${String(minH).padStart(2,"0")}:00 (${counts[minH]} phiếu)`:"—";
+        document.getElementById("hourTotal").textContent=`${totalWithHour} / ${data.length} phiếu`;
+        document.getElementById("hourPanelMeta").textContent=totalWithHour>0?`${Math.round(totalWithHour/data.length*100)}% có giờ`:"";
       }
 
-      function exportXLSX() {
-        const q = document.getElementById("modalSearch").value.toLowerCase();
-        const rows = currentModalData.filter(
-          (x) => !q || Object.values(x).join(" ").toLowerCase().includes(q),
-        );
-        if (!rows.length) {
-          alert("Không có dữ liệu để xuất.");
-          return;
-        }
-        const data = rows.map((x) => ({
-          "Ticket ID": x.id,
-          Ngày: x.date.split("-").reverse().join("/"),
-          Location: x.location,
-          Group: x.group,
-          "Type Issue": x.typeIssue,
-          "Tiêu đề": x.title,
-          "Người xử lý": x.staff,
-          "Trạng thái": x.status,
-        }));
-        const ws = XLSX.utils.json_to_sheet(data);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "My_Tickets");
-        XLSX.writeFile(
-          wb,
-          `my_tickets_${new Date().toISOString().split("T")[0]}.xlsx`,
-        );
-      }
-
-      function makeChart(
-        id,
-        type,
-        labels,
-        values,
-        horizontal,
-        onClickCallback,
-      ) {
-        if (charts[id]) charts[id].destroy();
-        const canvas = document.getElementById(id);
-        if (!canvas) return;
-        const cColor = getChartColor(),
-          gColor = getGridColor();
-        const valuePlugin = {
-          id: "val",
-          afterDatasetsDraw(c) {
-            const ctx = c.ctx;
-            ctx.fillStyle = isDarkMode ? "#fff" : "#0f172a";
-            ctx.font = "700 9.5px 'DM Mono'";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            const meta = c.getDatasetMeta(0);
-            if (!meta?.data) return;
-            c.data.datasets[0].data.forEach((val, i) => {
-              if (!val) return;
-              const p = meta.data[i]?.tooltipPosition();
-              if (!p) return;
-              horizontal
-                ? ctx.fillText(val.toLocaleString("vi-VN"), p.x + 15, p.y)
-                : ctx.fillText(val.toLocaleString("vi-VN"), p.x, p.y - 8);
-            });
-          },
-        };
-        const opts = {
-          indexAxis: horizontal ? "y" : "x",
-          responsive: true,
-          maintainAspectRatio: false,
-          layout: {
-            padding: {
-              top: 15,
-              right: horizontal ? 35 : 5,
-              left: 0,
-              bottom: 0,
-            },
-          },
-          plugins: { legend: { display: false } },
-          onClick: onClickCallback,
-          onHover: (e, el) => {
-            e.native.target.style.cursor = el[0] ? "pointer" : "default";
-          },
-          scales: horizontal
-            ? {
-                x: { display: false },
-                y: {
-                  grid: { display: false },
-                  ticks: { font: { size: 9.5 }, color: cColor },
-                },
-              }
-            : {
-                y: { display: false },
-                x: {
-                  grid: { display: false },
-                  ticks: { font: { size: 9.5 }, maxRotation: 0, color: cColor },
-                },
-              },
-        };
-        if (type === "line") {
-          Object.assign(opts.scales, {
-            y: { display: false },
-            x: {
-              grid: { color: gColor, lineWidth: 0.5 },
-              ticks: {
-                font: { size: 9.5 },
-                maxRotation: 0,
-                color: cColor,
-                maxTicksLimit: 14,
-              },
-            },
-          });
-          charts[id] = new Chart(canvas, {
-            type: "line",
-            data: {
-              labels,
-              datasets: [
-                {
-                  data: values,
-                  borderColor: "#0ea5e9",
-                  backgroundColor: "rgba(14, 165, 233, 0.1)",
-                  borderWidth: 2,
-                  pointRadius: 4,
-                  pointBackgroundColor: "#0ea5e9",
-                  tension: 0.3,
-                  fill: true,
-                },
-              ],
-            },
-            options: opts,
-            plugins: [valuePlugin],
-          });
-        } else {
-          charts[id] = new Chart(canvas, {
-            type,
-            data: {
-              labels,
-              datasets: [
-                {
-                  data: values,
-                  backgroundColor: "#0ea5e9",
-                  borderRadius: 3,
-                  minBarLength: 2,
-                },
-              ],
-            },
-            options: opts,
-            plugins: [valuePlugin],
-          });
-        }
-      }
-
+      // =========================================================
+      // MAIN: applyRange
+      // =========================================================
       function applyRange() {
         try {
-          const fStr = document.getElementById("fromDate").value;
-          const tStr = document.getElementById("toDate").value;
-          const f = parseDate(fStr);
-          const t = parseDate(tStr);
-          if (f && t && f > t) {
-            document.getElementById("fromDate").value = tStr;
-            document.getElementById("toDate").value = fStr;
+          const fStr=document.getElementById("fromDate").value;
+          const tStr=document.getElementById("toDate").value;
+          const f=parseDate(fStr), t=parseDate(tStr);
+          if(f&&t&&f>t){
+            document.getElementById("fromDate").value=tStr;
+            document.getElementById("toDate").value=fStr;
             return applyRange();
           }
 
-          CURRENT_DATA = ALL_DATA.filter((x) => {
-            if (!x.staff.includes(TARGET_STAFF) && x.staff !== TARGET_STAFF)
-              return false;
-            if (!x.date) return false;
-            const d = parseDate(x.date);
-            return d && f && t && d >= f && d <= t;
+          // Lọc dữ liệu kỳ hiện tại
+          const myAll=ALL_DATA.filter(x=>x.staff.includes(TARGET_STAFF)||x.staff===TARGET_STAFF);
+          CURRENT_DATA=myAll.filter(x=>{
+            if(!x.date) return false;
+            const d=parseDate(x.date);
+            return d&&f&&t&&d>=f&&d<=t;
           });
 
-          const pendingList = ALL_DATA.filter(
-            (x) =>
-              !x.isClosed &&
-              (x.staff.includes(TARGET_STAFF) || x.staff === TARGET_STAFF),
-          ).sort((a, b) => new Date(a.date) - new Date(b.date));
+          // === KỲ TRƯỚC ===
+          const prev=calcPrevPeriod(fStr,tStr);
+          let PREV_DATA=[];
+          if(prev) PREV_DATA=myAll.filter(x=>{ if(!x.date) return false; const d=parseDate(x.date); return d&&parseDate(prev.from)&&parseDate(prev.to)&&d>=parseDate(prev.from)&&d<=parseDate(prev.to); });
 
-          const mTotal = CURRENT_DATA.length;
-          const mClosed = CURRENT_DATA.filter((x) => x.isClosed).length;
-          const mOpen = pendingList.length;
+          // === KPI ===
+          const mTotal=CURRENT_DATA.length;
+          const mClosed=CURRENT_DATA.filter(x=>x.isClosed).length;
+          const pendingList=myAll.filter(x=>!x.isClosed).sort((a,b)=>new Date(a.date)-new Date(b.date));
+          const mOpen=pendingList.length;
+          const mEsc=CURRENT_DATA.filter(x=>x.isEscalated).length;
+          const escRate=mTotal>0?Math.round(mEsc/mTotal*100):0;
 
-          const closedWithTime = CURRENT_DATA.filter(
-            (x) => x.duration !== null && x.duration > 0,
-          );
-          let mAvgTime = 0;
-          if (closedWithTime.length > 0) {
-            const sum = closedWithTime.reduce(
-              (acc, curr) => acc + curr.duration,
-              0,
-            );
-            mAvgTime = Math.round(sum / closedWithTime.length);
+          const closedWithTime=CURRENT_DATA.filter(x=>x.duration!==null&&x.duration>0);
+          let mAvgTime=0;
+          if(closedWithTime.length>0) mAvgTime=Math.round(closedWithTime.reduce((a,c)=>a+c.duration,0)/closedWithTime.length);
+
+          // SLA breach
+          const slaBreached=closedWithTime.filter(x=>x.duration>SLA_THRESHOLD).length;
+          const slaPct=closedWithTime.length>0?Math.round(slaBreached/closedWithTime.length*100):0;
+
+          // === KỲ TRƯỚC KPI ===
+          const pTotal=PREV_DATA.length;
+          const pClosed=PREV_DATA.filter(x=>x.isClosed).length;
+          const pOpen=myAll.filter(x=>!x.isClosed&&prev&&parseDate(x.date)&&parseDate(x.date)<=parseDate(prev.to)).length;
+          const pWithTime=PREV_DATA.filter(x=>x.duration!==null&&x.duration>0);
+          const pAvgTime=pWithTime.length>0?Math.round(pWithTime.reduce((a,c)=>a+c.duration,0)/pWithTime.length):null;
+
+          // === RENDER KPI ===
+          document.getElementById("kpiTotal").textContent=mTotal.toLocaleString("vi-VN");
+          document.getElementById("kpiClosed").textContent=mClosed.toLocaleString("vi-VN");
+          document.getElementById("kpiOpen").textContent=mOpen.toLocaleString("vi-VN");
+          document.getElementById("kpiAvgTime").textContent=mAvgTime.toLocaleString("vi-VN");
+          document.getElementById("kpiEscRate").textContent=escRate+"%";
+          document.getElementById("kpiEscCount").textContent=`(${mEsc} phiếu)`;
+          document.getElementById("kpiSlaBreached").textContent=`${slaBreached} phiếu`;
+          document.getElementById("kpiSlaPct").textContent=slaBreached>0?`${slaPct}% vượt ${SLA_THRESHOLD}p`:"Trong ngưỡng ✓";
+
+          const rate=mTotal>0?Math.round(mClosed/mTotal*100):0;
+          document.getElementById("closeRatePct").textContent=rate+"%";
+          document.getElementById("closeRateFill").style.width=rate+"%";
+
+          // DELTA
+          renderDelta("kpiTotalDelta", mTotal, pTotal>0?pTotal:null, false);
+          renderDelta("kpiClosedDelta", mClosed, pClosed>0?pClosed:null, false);
+          renderDelta("kpiOpenDelta", mOpen, pOpen>0?pOpen:null, true);
+          renderDelta("kpiTimeDelta", mAvgTime, pAvgTime, true);
+
+          // SPARKLINE — last 7 days trend
+          const today=new Date(); today.setHours(0,0,0,0);
+          const spark7=[];
+          for(let i=6;i>=0;i--){
+            const d=new Date(today); d.setDate(d.getDate()-i);
+            const ds=fmtDate(d);
+            spark7.push(myAll.filter(x=>x.date===ds).length);
           }
+          const spark7c=[];
+          for(let i=6;i>=0;i--){
+            const d=new Date(today); d.setDate(d.getDate()-i);
+            const ds=fmtDate(d);
+            spark7c.push(myAll.filter(x=>x.date===ds&&x.isClosed).length);
+          }
+          const blue=isDarkMode?"#38bdf8":"#2563eb";
+          const green=isDarkMode?"#2ed573":"#16a34a";
+          drawSparkline("sparkTotal", spark7, blue);
+          drawSparkline("sparkClosed", spark7c, green);
 
-          document.getElementById("kpiTotal").textContent =
-            mTotal.toLocaleString("vi-VN");
-          document.getElementById("kpiClosed").textContent =
-            mClosed.toLocaleString("vi-VN");
-          document.getElementById("kpiOpen").textContent =
-            mOpen.toLocaleString("vi-VN");
-          document.getElementById("kpiAvgTime").textContent =
-            mAvgTime.toLocaleString("vi-VN");
-
-          const rate = mTotal > 0 ? Math.round((mClosed / mTotal) * 100) : 0;
-          document.getElementById("closeRatePct").textContent = rate + "%";
-          document.getElementById("closeRateFill").style.width = rate + "%";
-
-          const counts = (key) => {
-            const r = {};
-            CURRENT_DATA.forEach((x) => {
-              r[x[key]] = (r[x[key]] || 0) + 1;
-            });
-            return Object.entries(r).sort((a, b) => b[1] - a[1]);
-          };
-
-          const tsMap = {};
-          CURRENT_DATA.forEach((x) => {
-            tsMap[x.date] = (tsMap[x.date] || 0) + 1;
+          // TIME CHART
+          const tsMap={};
+          CURRENT_DATA.forEach(x=>{ tsMap[x.date]=(tsMap[x.date]||0)+1; });
+          const ts=Object.entries(tsMap).sort((a,b)=>a[0].localeCompare(b[0])).map(x=>({l:x[0].substring(5).replace("-","/"),v:x[1]}));
+          makeChart("timeChart","line",ts.map(x=>x.l),ts.map(x=>x.v),false,(e,els)=>{
+            if(els.length) openDetail(`Ticket ngày ${ts[els[0].index].l}`,d=>d.date.substring(5).replace("-","/")=== ts[els[0].index].l);
           });
-          const ts = Object.entries(tsMap)
-            .sort((a, b) => a[0].localeCompare(b[0]))
-            .map((x) => ({ l: x[0].substring(5).replace("-", "/"), v: x[1] }));
 
-          const mainTop = counts("mainType").slice(0, 10);
-          const issueTop = counts("typeIssue").slice(0, 10);
-          const locTop = counts("location").slice(0, 10);
+          // HOUR HEATMAP
+          buildHourChart(CURRENT_DATA);
 
-          makeChart(
-            "timeChart",
-            "line",
-            ts.map((x) => x.l),
-            ts.map((x) => x.v),
-            false,
-            (e, els) => {
-              if (els.length)
-                openDetail(
-                  `Ticket ngày ${ts[els[0].index].l}`,
-                  (d) =>
-                    d.date.substring(5).replace("-", "/") ===
-                    ts[els[0].index].l,
-                );
-            },
-          );
-
-          const renderTable = (id, arr, keyObj) => {
-            const el = document.getElementById(id);
-            if (!el) return;
-            el.innerHTML = arr
-              .map((x, i) => {
-                const safe = String(x[0]).replace(/'/g, "\\'");
-                return `<tr onclick="openDetail('${escapeHtml(x[0])}', d => d['${keyObj}'] === '${safe}')">
-          <td><span class="rank">${i + 1}</span>${escapeHtml(x[0])}</td>
-          <td>${x[1].toLocaleString("vi-VN")}</td>
-        </tr>`;
-              })
-              .join("");
+          // TOP TABLES
+          const counts=(key)=>{
+            const r={};
+            CURRENT_DATA.forEach(x=>{ r[x[key]]=(r[x[key]]||0)+1; });
+            return Object.entries(r).sort((a,b)=>b[1]-a[1]);
           };
+          const mainTop=counts("mainType").slice(0,10);
+          const issueTop=counts("typeIssue").slice(0,10);
+          const locTop=counts("location").slice(0,10);
 
-          const elPending = document.getElementById("pendingBody");
-          if (elPending) {
-            if (pendingList.length === 0) {
-              elPending.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--text-muted);font-size:12px;padding:30px; font-weight: 600;">🎉 Chúc mừng! Không còn phiếu xử lý tồn đọng.</td></tr>`;
+          const renderTable=(id,arr,keyObj)=>{
+            const el=document.getElementById(id); if(!el) return;
+            el.innerHTML=arr.map((x,i)=>{
+              const safe=String(x[0]).replace(/'/g,"\\'");
+              return `<tr onclick="openDetail('${escapeHtml(x[0])}', d => d['${keyObj}'] === '${safe}')">
+                <td><span class="rank">${i+1}</span>${escapeHtml(x[0])}</td>
+                <td>${x[1].toLocaleString("vi-VN")}</td>
+              </tr>`;
+            }).join("");
+          };
+          renderTable("mainTable",mainTop,"mainType");
+          renderTable("typeTable",issueTop,"typeIssue");
+          renderTable("locationTable",locTop,"location");
+
+          // PENDING TABLE
+          const elPending=document.getElementById("pendingBody");
+          if(elPending){
+            if(pendingList.length===0){
+              elPending.innerHTML=`<tr><td colspan="5" style="text-align:center;color:var(--text-muted);font-size:12px;padding:30px;font-weight:600;">🎉 Chúc mừng! Không còn phiếu xử lý tồn đọng.</td></tr>`;
             } else {
-              elPending.innerHTML = pendingList
-                .map(
-                  (x) => `
-          <tr onclick="openTicketDirect('${escapeHtml(x.id)}')" title="Nhấn xem chi tiết phiếu #${escapeHtml(x.id)}">
-            <td style="font-family:'DM Mono';font-weight:800;color:var(--text-main);padding:8px 4px; flex: 0 0 60px;">#${escapeHtml(x.id)}</td>
-            <td style="text-align:left;font-weight:600;padding:8px 4px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(x.location)}</td>
-            <td style="font-weight:700;padding:8px 4px; flex: 2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--blue);">${escapeHtml(x.title)}</td>
-            <td style="font-family:'DM Mono';color:var(--text-muted);text-align:center;padding:8px 4px; flex: 0 0 85px;">${x.date.split("-").reverse().join("/")}</td>
-          </tr>`,
-                )
-                .join("");
+              elPending.innerHTML=pendingList.map(x=>{
+                const days=daysBetween(x.date);
+                let badgeCls="fresh", badgeTxt=`${days}d`;
+                if(days===0){ badgeCls="fresh"; badgeTxt="Hôm nay"; }
+                else if(days<=3){ badgeCls="warn"; badgeTxt=`${days} ngày`; }
+                else { badgeCls="hot"; badgeTxt=`${days} ngày`; }
+                return `<tr onclick="openTicketDirect('${escapeHtml(x.id)}')" title="Nhấn xem chi tiết phiếu #${escapeHtml(x.id)}">
+                  <td style="font-family:'DM Mono';font-weight:800;color:var(--text-main);padding:6px 4px;flex:0 0 58px;">#${escapeHtml(x.id)}</td>
+                  <td style="text-align:left;font-weight:600;padding:6px 4px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(x.location)}</td>
+                  <td style="font-weight:700;padding:6px 4px;flex:2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--blue);">${escapeHtml(x.title)}</td>
+                  <td style="font-family:'DM Mono';color:var(--text-muted);text-align:center;padding:6px 4px;flex:0 0 70px;">${x.date.split("-").reverse().join("/")}</td>
+                  <td style="padding:6px 4px;flex:0 0 56px;text-align:center;"><span class="wait-badge ${badgeCls}">${badgeTxt}</span></td>
+                </tr>`;
+              }).join("");
             }
           }
 
-          renderTable("mainTable", mainTop, "mainType");
-          renderTable("typeTable", issueTop, "typeIssue");
-          renderTable("locationTable", locTop, "location");
+          // INSIGHTS
+          updateInsights(mTotal, mOpen, mAvgTime, mClosed, rate, mainTop, ts, mEsc, escRate, slaBreached, slaPct, CURRENT_DATA);
 
-          updateInsights(mTotal, mOpen, mAvgTime, mClosed, rate, mainTop, ts);
-        } catch (err) {
-          console.error(err);
+        } catch(err){ console.error(err); }
+      }
+
+      // =========================================================
+      // INSIGHTS
+      // =========================================================
+      function updateInsights(mTotal, mOpen, mAvgTime, mClosed, rate, mainTop, ts, mEsc, escRate, slaBreached, slaPct, data) {
+        // To-do
+        if(mOpen>0) document.getElementById("insightOpen").textContent=`Chỉ số chờ xử lý: ${mOpen} phiếu. Đề xuất quy trình giải quyết cuốn chiếu theo thời gian tiếp nhận (FIFO).`;
+        else document.getElementById("insightOpen").textContent=`Trạng thái hoàn hảo: Tỷ lệ phủ lấp công việc đạt 100%. Không có dư nợ quy trình.`;
+
+        // SLA + Escalate
+        let speedText="";
+        if(mAvgTime>0){
+          speedText=`SLA trung bình: ${mAvgTime} phút/phiếu.`;
+          if(slaBreached>0) speedText+=` ⚠️ ${slaBreached} phiếu (${slaPct}%) vượt ngưỡng ${SLA_THRESHOLD} phút.`;
+          else speedText+=` Toàn bộ phiếu trong ngưỡng SLA ${SLA_THRESHOLD} phút. ✓`;
+          if(mEsc>0) speedText+=` Leo thang: ${mEsc} phiếu (${escRate}%).`;
+        } else {
+          speedText="Chưa đủ tham số bấm giờ để ước lượng chu kỳ SLA.";
+        }
+        document.getElementById("insightSpeed").textContent=speedText;
+
+        // Top lỗi
+        if(mainTop.length>0){
+          const top1=mainTop[0];
+          const pct=mTotal>0?Math.round(top1[1]/mTotal*100):0;
+          document.getElementById("insightTop").textContent=`Trọng tâm: "${top1[0]}" chiếm ${pct}% (${top1[1]} vụ) tổng tải công việc.`;
+        } else {
+          document.getElementById("insightTop").textContent="Chưa đủ lưu lượng để lập bản đồ phân bổ lỗi.";
+        }
+
+        // Giờ cao điểm
+        const hourCounts=new Array(24).fill(0);
+        data.forEach(x=>{
+          if(!x.startTime||x.startTime==="--:--") return;
+          const h=parseInt(x.startTime.split(":")[0]);
+          if(!isNaN(h)&&h>=0&&h<=23) hourCounts[h]++;
+        });
+        const totalH=hourCounts.reduce((a,b)=>a+b,0);
+        if(totalH>0){
+          const mx=Math.max(...hourCounts);
+          const peak=hourCounts.indexOf(mx);
+          // Top 3 hours
+          const top3=hourCounts.map((v,i)=>({v,i})).sort((a,b)=>b.v-a.v).slice(0,3).filter(x=>x.v>0);
+          const top3txt=top3.map(x=>`${String(x.i).padStart(2,"0")}h(${x.v})`).join(", ");
+          document.getElementById("insightPeak").textContent=`Giờ cao điểm: ${String(peak).padStart(2,"0")}:00 với ${mx} phiếu. Top 3 khung giờ: ${top3txt}. Nên ưu tiên sẵn sàng nhân lực trong khung này.`;
+        } else {
+          document.getElementById("insightPeak").textContent="Chưa có dữ liệu giờ bắt đầu để phân tích khung giờ cao điểm.";
         }
       }
 
-      function updateInsights(
-        mTotal,
-        mOpen,
-        mAvgTime,
-        mClosed,
-        rate,
-        mainTop,
-        ts,
-      ) {
-        if (mOpen > 0) {
-          document.getElementById("insightOpen").textContent =
-            `Chỉ số chờ xử lý: ${mOpen} phiếu. Đề xuất quy trình giải quyết cuốn chiếu theo thời gian tiếp nhận (First-In, First-Out).`;
-        } else {
-          document.getElementById("insightOpen").textContent =
-            `Trạng thái hoàn hảo: Tỷ lệ phủ lấp công việc đạt 100%. Không có dư nợ quy trình.`;
-        }
-
-        if (mAvgTime > 0) {
-          document.getElementById("insightSpeed").textContent =
-            `Chỉ số SLA trung bình: Đạt ${mAvgTime} phút/phiếu. Khuyến nghị duy trì nhịp độ để tối ưu hoá thời gian hỗ trợ kỹ thuật.`;
-        } else {
-          document.getElementById("insightSpeed").textContent =
-            `Chưa đủ tham số bấm giờ để thuật toán ước lượng chu kỳ giải quyết sự cố.`;
-        }
-
-        if (mainTop.length > 0) {
-          const top1 = mainTop[0];
-          const pct = mTotal > 0 ? Math.round((top1[1] / mTotal) * 100) : 0;
-          document.getElementById("insightTop").textContent =
-            `Trọng tâm phát sinh: Hạng mục "${top1[0]}" chiếm ${pct}% (${top1[1]} vụ) trên tổng tải công việc.`;
-        } else {
-          document.getElementById("insightTop").textContent =
-            "Chưa có đủ lưu lượng để lập bản đồ nhiệt phân bổ lỗi.";
-        }
-      }
-
-      function fetchFromGViz() {
-        if (document.getElementById("fetchStatus"))
-          document.getElementById("fetchStatus").textContent =
-            "Đang nạp dữ liệu...";
-        const oldMain = document.getElementById("gviz-script-main");
-        if (oldMain) oldMain.remove();
-        const scriptMain = document.createElement("script");
-        scriptMain.id = "gviz-script-main";
-        scriptMain.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${GID_MAIN}&tqx=responseHandler:processMainSheetData&_cache=${Date.now()}`;
-        scriptMain.onerror = () => {
-          if (document.getElementById("fetchStatus"))
-            document.getElementById("fetchStatus").textContent = "Lỗi mạng!";
+      // =========================================================
+      // CHART (Chart.js)
+      // =========================================================
+      function makeChart(id, type, labels, values, horizontal, onClickCallback) {
+        if(charts[id]) charts[id].destroy();
+        const canvas=document.getElementById(id); if(!canvas) return;
+        const cColor=getChartColor(), gColor=getGridColor();
+        const valuePlugin={
+          id:"val",
+          afterDatasetsDraw(c){
+            const ctx=c.ctx;
+            ctx.fillStyle=isDarkMode?"#fff":"#0f172a";
+            ctx.font="700 9.5px 'DM Mono'"; ctx.textAlign="center"; ctx.textBaseline="middle";
+            const meta=c.getDatasetMeta(0); if(!meta?.data) return;
+            c.data.datasets[0].data.forEach((val,i)=>{
+              if(!val) return;
+              const p=meta.data[i]?.tooltipPosition(); if(!p) return;
+              horizontal?ctx.fillText(val.toLocaleString("vi-VN"),p.x+15,p.y):ctx.fillText(val.toLocaleString("vi-VN"),p.x,p.y-8);
+            });
+          }
         };
-        document.body.appendChild(scriptMain);
+        const opts={
+          indexAxis: horizontal?"y":"x", responsive:true, maintainAspectRatio:false,
+          layout:{padding:{top:15,right:horizontal?35:5,left:0,bottom:0}},
+          plugins:{legend:{display:false}},
+          onClick:onClickCallback,
+          onHover:(e,el)=>{e.native.target.style.cursor=el[0]?"pointer":"default";},
+          scales: horizontal?{x:{display:false},y:{grid:{display:false},ticks:{font:{size:9.5},color:cColor}}}:
+            {y:{display:false},x:{grid:{display:false},ticks:{font:{size:9.5},maxRotation:0,color:cColor}}}
+        };
+        if(type==="line"){
+          Object.assign(opts.scales,{
+            y:{display:false},
+            x:{grid:{color:gColor,lineWidth:0.5},ticks:{font:{size:9.5},maxRotation:0,color:cColor,maxTicksLimit:14}}
+          });
+          charts[id]=new Chart(canvas,{
+            type:"line", data:{labels,datasets:[{data:values,borderColor:"#0ea5e9",backgroundColor:"rgba(14,165,233,0.1)",borderWidth:2,pointRadius:4,pointBackgroundColor:"#0ea5e9",tension:0.3,fill:true}]},
+            options:opts, plugins:[valuePlugin]
+          });
+        } else {
+          charts[id]=new Chart(canvas,{
+            type, data:{labels,datasets:[{data:values,backgroundColor:"#0ea5e9",borderRadius:3,minBarLength:2}]},
+            options:opts, plugins:[valuePlugin]
+          });
+        }
       }
 
-      window.processMainSheetData = function (json) {
+      // =========================================================
+      // MODAL
+      // =========================================================
+      function openDetail(titleText, filterCondition) {
+        document.getElementById("modalTitle").textContent=titleText;
+        document.getElementById("modalSearch").value="";
+        currentModalData=CURRENT_DATA.filter(filterCondition);
+        currentSortCol="date"; currentSortAsc=false;
+        currentModalData.sort((a,b)=>new Date(b.date)-new Date(a.date));
+        renderModalTable(); updateSortIcons();
+        document.getElementById("detailModal").classList.add("active");
+      }
+      function renderModalTable() {
+        const body=document.getElementById("modalBody");
+        const q=document.getElementById("modalSearch").value.toLowerCase();
+        const visible=currentModalData.filter(x=>!q||Object.values(x).join(" ").toLowerCase().includes(q));
+        document.getElementById("modalMeta").textContent=`${visible.length.toLocaleString("vi-VN")} / ${currentModalData.length.toLocaleString("vi-VN")} phiếu`;
+        if(visible.length===0){ body.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:30px;font-weight:600;color:var(--text-muted);">Không có dữ liệu phù hợp</td></tr>`; return; }
+        let html="";
+        visible.forEach(x=>{
+          const cls=getStatusClass(x);
+          html+=`<tr onclick="viewFullDetailDirect('${escapeHtml(x.id)}')">
+            <td style="font-family:'DM Mono';font-weight:800;padding:10px 6px;">#${escapeHtml(x.id)}</td>
+            <td>${x.date.split("-").reverse().join("/")}</td>
+            <td style="font-weight:700;">${escapeHtml(x.location)}</td>
+            <td style="color:var(--blue);font-weight:600;">${escapeHtml(x.group)}</td>
+            <td>${escapeHtml(x.typeIssue)}</td>
+            <td>${escapeHtml(x.title)}</td>
+            <td>${escapeHtml(x.staff)}</td>
+            <td><span class="badge ${cls}">${escapeHtml(x.status)}</span></td>
+          </tr>`;
+        });
+        body.innerHTML=html;
+      }
+      function filterModalTable() { renderModalTable(); }
+
+      function viewFullDetailDirect(ticketId) {
+        const tk=ALL_DATA.find(x=>x.id===ticketId); if(!tk) return;
+        activeTicket=tk;
+        toggleEditFields(false);
+        document.getElementById("tk-id").textContent=tk.id;
+        document.getElementById("tk-content").textContent=tk.title;
+        document.getElementById("tk-desc-view").textContent=tk.desc||"Không có mô tả chi tiết.";
+        document.getElementById("tk-date").textContent=tk.date.split("-").reverse().join("/");
+        document.getElementById("tk-start").textContent=tk.startTime||"--:--";
+        document.getElementById("tk-end").textContent=tk.endTime||"--:--";
+        document.getElementById("tk-loc").textContent=tk.location;
+        document.getElementById("tk-group-view").textContent=tk.group;
+        document.getElementById("tk-staff-view").textContent=tk.staff;
+        document.getElementById("tk-status-view").textContent=tk.status;
+        document.getElementById("tk-main").textContent=tk.mainType;
+        document.getElementById("tk-sub").textContent=tk.typeIssue;
+        const cls=getStatusClass(tk);
+        document.getElementById("tk-badge").innerHTML=`<span class="badge ${cls}" style="font-size:11px;min-width:120px;">${escapeHtml(tk.status)}</span>`;
+        document.getElementById("ticketFullDetail").classList.add("show");
+      }
+      function closeFullDetail() { document.getElementById("ticketFullDetail").classList.remove("show"); }
+      function closeModal() { document.getElementById("detailModal").classList.remove("active"); closeFullDetail(); }
+
+      function openTicketDirect(ticketId) {
+        const tk=ALL_DATA.find(x=>x.id===ticketId); if(!tk) return;
+        document.getElementById("modalTitle").textContent="Xem nhanh Phiếu xử lý";
+        document.getElementById("modalMeta").textContent=`#${ticketId}`;
+        document.getElementById("modalSearch").value="";
+        document.getElementById("modalBody").innerHTML=`<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--text-muted);font-size:11px;">← Nhấn "Quay lại" để trở về</td></tr>`;
+        currentModalData=[];
+        document.getElementById("detailModal").classList.add("active");
+        viewFullDetailDirect(ticketId);
+      }
+
+      document.getElementById("detailModal").addEventListener("click",function(e){ if(e.target===this) closeModal(); });
+      document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ if(document.getElementById("ticketFullDetail").classList.contains("show")) closeFullDetail(); else closeModal(); } });
+
+      function sortModal(col) {
+        if(currentSortCol===col) currentSortAsc=!currentSortAsc;
+        else { currentSortCol=col; currentSortAsc=true; }
+        currentModalData.sort((a,b)=>{
+          let vA=a[col]??"", vB=b[col]??"";
+          if(col==="id") return currentSortAsc?(Number(vA)||0)-(Number(vB)||0):(Number(vB)||0)-(Number(vA)||0);
+          if(col==="date") return currentSortAsc?new Date(vA)-new Date(vB):new Date(vB)-new Date(vA);
+          vA=String(vA).toLowerCase(); vB=String(vB).toLowerCase();
+          if(vA<vB) return currentSortAsc?-1:1;
+          if(vA>vB) return currentSortAsc?1:-1;
+          return 0;
+        });
+        renderModalTable(); updateSortIcons();
+      }
+      function updateSortIcons() {
+        document.querySelectorAll(".sort-icon").forEach(el=>el.innerHTML="");
+        const t=document.getElementById(`sort-${currentSortCol}`);
+        if(t) t.innerHTML=currentSortAsc?"▲":"▼";
+      }
+
+      function exportXLSX() {
+        const q=document.getElementById("modalSearch").value.toLowerCase();
+        const rows=currentModalData.filter(x=>!q||Object.values(x).join(" ").toLowerCase().includes(q));
+        if(!rows.length){ alert("Không có dữ liệu để xuất."); return; }
+        const data=rows.map(x=>({ "Ticket ID":x.id, "Ngày":x.date.split("-").reverse().join("/"), "Location":x.location, "Group":x.group, "Type Issue":x.typeIssue, "Tiêu đề":x.title, "Người xử lý":x.staff, "Trạng thái":x.status }));
+        const ws=XLSX.utils.json_to_sheet(data);
+        const wb=XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb,ws,"My_Tickets");
+        XLSX.writeFile(wb,`my_tickets_${new Date().toISOString().split("T")[0]}.xlsx`);
+      }
+
+      // =========================================================
+      // EDIT MODAL
+      // =========================================================
+      function unlockEditMode() {
+        let pin=prompt("Vui lòng nhập mã PIN bảo mật:");
+        if(pin===SECURITY_PIN){
+          document.getElementById("btnToggleEdit").style.display="none";
+          document.getElementById("btnSaveWeb").style.display="block";
+          document.getElementById("tk-desc-edit").value=activeTicket.desc;
+          document.getElementById("tk-group-edit").value=activeTicket.group;
+          document.getElementById("tk-staff-edit").value=activeTicket.staff;
+          document.getElementById("tk-status-edit").value=activeTicket.status.includes("Leo thang")||activeTicket.status==="3"?"3 (Leo thang)":activeTicket.isClosed?"4 (Đóng)":activeTicket.status;
+          toggleEditFields(true);
+        } else if(pin!==null){ alert("❌ Sai mã PIN."); }
+      }
+      function toggleEditFields(isEditable) {
+        const d=isEditable?"none":"block", e=isEditable?"block":"none";
+        ["tk-desc-view","tk-group-view","tk-staff-view","tk-status-view"].forEach(id=>document.getElementById(id).style.display=d);
+        ["tk-desc-edit","tk-group-edit","tk-staff-edit","tk-status-edit"].forEach(id=>document.getElementById(id).style.display=e);
+      }
+      async function saveDataFromWeb() {
+        if(!activeTicket) return;
+        const btn=document.getElementById("btnSaveWeb");
+        btn.innerHTML="⏳ ĐANG ĐỒNG BỘ..."; btn.disabled=true;
+        const payload={ id:activeTicket.id, group:document.getElementById("tk-group-edit").value, title_vn:activeTicket.title, mainType:activeTicket.mainType, typeIssue:activeTicket.typeIssue, tag:activeTicket.tag||"", note:document.getElementById("tk-desc-edit").value, channel:activeTicket.location, status:document.getElementById("tk-status-edit").value, assignee:document.getElementById("tk-staff-edit").value, date:activeTicket.date };
         try {
-          if (!json?.table?.rows) throw new Error("Dữ liệu trống");
-          ALL_DATA = [];
-          json.table.rows.forEach((r) => {
-            if (!r?.c) return;
-            const gVal = (idx) =>
-              idx < r.c.length &&
-              r.c[idx] &&
-              r.c[idx].v !== null &&
-              r.c[idx].v !== undefined
-                ? r.c[idx].v
-                : "";
-            let rawDate = gVal(11);
-            let dStr = "";
-            if (rawDate) {
-              let sRaw = String(rawDate);
-              if (sRaw.includes("Date(")) {
-                const p = sRaw.replace("Date(", "").replace(")", "").split(",");
-                if (p.length >= 3)
-                  dStr = `${p[0]}-${String(Number(p[1]) + 1).padStart(2, "0")}-${String(p[2]).padStart(2, "0")}`;
+          await fetch(WEBHOOK_URL,{method:"POST",mode:"no-cors",body:JSON.stringify(payload)});
+          alert("🎉 Cập nhật thành công!"); closeModal(); fetchFromGViz();
+        } catch(e){ alert("❌ Lỗi: "+e.message); }
+        finally{ btn.innerHTML="💾 LƯU LÊN SHEET"; btn.disabled=false; }
+      }
+
+      // =========================================================
+      // FETCH DATA (GViz)
+      // =========================================================
+      function fetchFromGViz() {
+        if(document.getElementById("fetchStatus")) document.getElementById("fetchStatus").textContent="Đang nạp dữ liệu...";
+        const old=document.getElementById("gviz-script-main"); if(old) old.remove();
+        const s=document.createElement("script");
+        s.id="gviz-script-main";
+        s.src=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${GID_MAIN}&tqx=responseHandler:processMainSheetData&_cache=${Date.now()}`;
+        s.onerror=()=>{ if(document.getElementById("fetchStatus")) document.getElementById("fetchStatus").textContent="Lỗi mạng!"; };
+        document.body.appendChild(s);
+      }
+
+      window.processMainSheetData=function(json){
+        try {
+          if(!json?.table?.rows) throw new Error("Dữ liệu trống");
+          ALL_DATA=[];
+          json.table.rows.forEach(r=>{
+            if(!r?.c) return;
+            const gVal=(idx)=>idx<r.c.length&&r.c[idx]&&r.c[idx].v!==null&&r.c[idx].v!==undefined?r.c[idx].v:"";
+            let rawDate=gVal(11), dStr="";
+            if(rawDate){
+              let sRaw=String(rawDate);
+              if(sRaw.includes("Date(")){
+                const p=sRaw.replace("Date(","").replace(")","").split(",");
+                if(p.length>=3) dStr=`${p[0]}-${String(Number(p[1])+1).padStart(2,"0")}-${String(p[2]).padStart(2,"0")}`;
               } else {
-                dStr = sRaw.split("T")[0];
-                if (dStr.includes("/")) {
-                  let parts = dStr.split("/");
-                  if (parts.length === 3 && parts[2].length === 4)
-                    dStr = `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
-                }
+                dStr=sRaw.split("T")[0];
+                if(dStr.includes("/")){ let parts=dStr.split("/"); if(parts.length===3&&parts[2].length===4) dStr=`${parts[2]}-${parts[1].padStart(2,"0")}-${parts[0].padStart(2,"0")}`; }
               }
             }
-            if (!dStr || dStr.length < 8) return;
-
-            const statusRaw = String(gVal(13));
-            const statusLower = statusRaw.toLowerCase();
-            const isClosed =
-              statusLower.includes("đóng") ||
-              statusLower.includes("close") ||
-              statusRaw === "4";
-
-            const sM = parseGvizMinutes(gVal(16));
-            const eM = parseGvizMinutes(gVal(17));
-            let dur = null;
-            if (sM !== null && eM !== null) {
-              dur = eM - sM;
-              if (dur < 0) dur += 1440;
-            }
-
+            if(!dStr||dStr.length<8) return;
+            const statusRaw=String(gVal(13)), statusLower=statusRaw.toLowerCase();
+            const isClosed=statusLower.includes("đóng")||statusLower.includes("close")||statusRaw==="4";
+            const isEscalated=statusLower.includes("leo thang")||statusLower.includes("escalat")||statusRaw==="3";
+            const sM=parseGvizMinutes(gVal(16)), eM=parseGvizMinutes(gVal(17));
+            let dur=null;
+            if(sM!==null&&eM!==null){ dur=eM-sM; if(dur<0) dur+=1440; }
             ALL_DATA.push({
-              id: String(gVal(0)),
-              group: String(gVal(1)) || "Chưa phân loại",
-              title: String(gVal(2)) || "Không có tiêu đề",
-              mainType: String(gVal(3)) || "Khác",
-              typeIssue: String(gVal(5)) || "Khác",
-              desc: String(gVal(8)) || "",
-              location: String(gVal(7)) || "Chưa xác định",
-              tag: String(gVal(5)),
-              staff: String(gVal(14)) || "Hệ thống tự động",
-              date: dStr,
-              startTime: parseTimeGViz(gVal(16)),
-              endTime: parseTimeGViz(gVal(17)),
-              duration: dur,
-              status: statusRaw,
-              isClosed: isClosed,
+              id:String(gVal(0)), group:String(gVal(1))||"Chưa phân loại",
+              title:String(gVal(2))||"Không có tiêu đề", mainType:String(gVal(3))||"Khác",
+              typeIssue:String(gVal(5))||"Khác", desc:String(gVal(8))||"",
+              location:String(gVal(7))||"Chưa xác định", tag:String(gVal(5)),
+              staff:String(gVal(14))||"Hệ thống tự động", date:dStr,
+              startTime:parseTimeGViz(gVal(16)), endTime:parseTimeGViz(gVal(17)),
+              duration:dur, status:statusRaw, isClosed, isEscalated
             });
           });
-
-          const myPending = ALL_DATA.filter(
-            (x) =>
-              !x.isClosed &&
-              (x.staff.includes(TARGET_STAFF) || x.staff === TARGET_STAFF),
-          ).length;
-          if (document.getElementById("fetchStatus"))
-            document.getElementById("fetchStatus").textContent =
-              `Đã nạp. Tồn đọng: ${myPending} phiếu`;
+          const myPending=ALL_DATA.filter(x=>!x.isClosed&&(x.staff.includes(TARGET_STAFF)||x.staff===TARGET_STAFF)).length;
+          if(document.getElementById("fetchStatus")) document.getElementById("fetchStatus").textContent=`Đã nạp. Tồn đọng: ${myPending} phiếu`;
           applyRange();
           startAutoRefresh();
-        } catch (e) {
-          if (document.getElementById("fetchStatus"))
-            document.getElementById("fetchStatus").textContent =
-              "Lỗi tệp chính: " + e.message;
+        } catch(e){
+          if(document.getElementById("fetchStatus")) document.getElementById("fetchStatus").textContent="Lỗi tệp chính: "+e.message;
         }
       };
 
+      // =========================================================
+      // INIT
+      // =========================================================
       initDefaultDates();
       loadLayoutState();
       loadColWidths();
