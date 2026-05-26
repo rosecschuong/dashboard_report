@@ -59,7 +59,7 @@
       .hud-col { display: flex; flex-direction: column; gap: 14px; min-height: 0; overflow-y: auto; overflow-x: hidden; flex-shrink: 0; padding-right: 4px; }
       #col-left { width: 22%; min-width: 180px; }
       #col-center { flex: 1; min-width: 300px; padding: 0 5px; overflow: hidden; }
-      #col-right { width: 28%; min-width: 200px; }
+      #col-right { width: 28%; min-width: 200px; display: flex; flex-direction: column; }
 
       .resize-handle { width: 10px; flex-shrink: 0; cursor: col-resize; display: flex; align-items: stretch; justify-content: center; position: relative; z-index: 10; }
       .resize-handle::before { content: ""; width: 3px; background: var(--handle-bg); border-radius: 3px; transition: background 0.2s, width 0.2s; margin: 20px 0; }
@@ -208,6 +208,17 @@
       .layout-toolbar.visible { display: flex; }
       .layout-toolbar-label { color: #fff; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
 
+      /* Top N selector */
+      .top-select {
+        background: var(--bg); color: var(--blue);
+        border: 1px solid rgba(37,99,235,0.25); border-radius: 4px;
+        padding: 2px 6px; font-size: 9px; font-family: "DM Mono", monospace;
+        font-weight: 800; height: 22px; outline: none; cursor: pointer;
+        transition: 0.2s;
+      }
+      .top-select:hover { border-color: var(--blue); }
+      [data-theme="dark"] .top-select { background: var(--dark); }
+
       /* shift indicator banner */
       .shift-banner { display: none; padding: 3px 10px; border-radius: 4px; font-size: 9px; font-weight: 800; margin-left: 8px; align-self: center; }
       .shift-banner.morning { background: rgba(245,158,11,0.15); color: var(--amber); border: 1px solid rgba(245,158,11,0.3); display: inline-flex; }
@@ -218,8 +229,15 @@
   <body>
     <div class="header">
       <div class="header-left">
-        <div class="title">BÁO CÁO NĂNG LỰC CÁ NHÂN</div>
+        <div class="title">BÁO CÁO XỬ LÝ ISSUE CÁ NHÂN</div>
         <div class="subtitle" id="staffNameDisplay">ĐANG TẢI...</div>
+        <!-- STAFF SELECTOR -->
+        <select id="staffSelector" onchange="changeStaff(this.value)" style="
+          background:var(--bg);color:var(--blue);border:1px solid rgba(37,99,235,0.3);
+          border-radius:6px;padding:3px 8px;font-size:10px;font-family:'DM Mono',monospace;
+          font-weight:800;height:26px;outline:none;cursor:pointer;
+          transition:0.2s;max-width:220px;
+        "></select>
         <span id="fetchStatus" style="font-size:10px;font-weight:600;color:var(--text-muted);margin-left:10px;align-self:center;">Đang khởi tạo...</span>
         <span class="shift-banner" id="shiftBanner"></span>
       </div>
@@ -392,22 +410,43 @@
 
       <!-- COL RIGHT -->
       <div class="hud-col" id="col-right">
-        <div class="panel" id="panel-type" style="flex-grow:1;">
-          <div class="panel-hd">Phân loại lỗi thường xử lý (Main Type)</div>
-          <div class="panel-bd" style="padding:5px 14px;">
-            <table class="mini-table" id="mainTable"></table>
+        <div class="panel" id="panel-type" style="flex:1;min-height:0;display:flex;flex-direction:column;">
+          <div class="panel-hd">
+            <span>Phân loại lỗi (Main Type)</span>
+            <select class="top-select" id="topMain" onchange="rerenderTables()">
+              <option value="5" selected>Top 5</option>
+              <option value="10">Top 10</option>
+              <option value="15">Top 15</option>
+            </select>
+          </div>
+          <div class="panel-bd" style="padding:5px 14px;flex-grow:1;overflow-y:auto;min-height:0;">
+            <table class="mini-table" id="mainTable" style="height:100%;"></table>
           </div>
         </div>
-        <div class="panel" id="panel-group" style="flex-grow:1;">
-          <div class="panel-hd">Vấn đề cụ thể (Type Issue)</div>
-          <div class="panel-bd" style="padding:5px 14px;">
-            <table class="mini-table" id="typeTable"></table>
+        <div class="panel" id="panel-group" style="flex:1;min-height:0;display:flex;flex-direction:column;">
+          <div class="panel-hd">
+            <span>Vấn đề cụ thể (Type Issue)</span>
+            <select class="top-select" id="topIssue" onchange="rerenderTables()">
+              <option value="5" selected>Top 5</option>
+              <option value="10">Top 10</option>
+              <option value="15">Top 15</option>
+            </select>
+          </div>
+          <div class="panel-bd" style="padding:5px 14px;flex-grow:1;overflow-y:auto;min-height:0;">
+            <table class="mini-table" id="typeTable" style="height:100%;"></table>
           </div>
         </div>
-        <div class="panel" id="panel-loc" style="flex-grow:1;">
-          <div class="panel-hd">Các vị trí thường hỗ trợ (Location)</div>
-          <div class="panel-bd" style="padding:5px 14px;">
-            <table class="mini-table" id="locationTable"></table>
+        <div class="panel" id="panel-loc" style="flex:1;min-height:0;display:flex;flex-direction:column;">
+          <div class="panel-hd">
+            <span>Vị trí thường hỗ trợ (Location)</span>
+            <select class="top-select" id="topLoc" onchange="rerenderTables()">
+              <option value="5" selected>Top 5</option>
+              <option value="10">Top 10</option>
+              <option value="15">Top 15</option>
+            </select>
+          </div>
+          <div class="panel-bd" style="padding:5px 14px;flex-grow:1;overflow-y:auto;min-height:0;">
+            <table class="mini-table" id="locationTable" style="height:100%;"></table>
           </div>
         </div>
       </div>
@@ -514,12 +553,38 @@
       // =========================================================
       // CẤU HÌNH
       // =========================================================
-      const TARGET_STAFF  = "CHƯƠNG, Lê (CC | HCM)";
+      const STAFF_LIST = [
+        "BÌNH, Tô (CC | HCM)",
+        "CHƯƠNG, Lê (CC | HCM)",
+        "Đại, Lê (CC | HCM)",
+        "DANH, Nguyễn (CC | HCM)",
+        "ĐỐNG, Lê (CC | HCM)",
+        "DŨNG, Bùi (CC | HCM)",
+        "HOAN, Đinh (CC | HCM)",
+        "Hoàng AN, Nguyễn (CC | HCM)",
+        "HUY, Phan (CC | HCM)",
+        "KHANG, Chiêm (CC | HCM)",
+        "THÁI, Đặng (CC | HCM)",
+        "THÀNH, Đặng (CC | HCM)",
+        "THƯ, Đinh (CC | HCM)",
+        "THUẬN, Nguyễn (CC | HCM)",
+        "TRUNG, Nguyễn (CC | HCM)",
+        "TRƯỜNG, Mai (CC | HCM)",
+      ];
+      const DEFAULT_STAFF = "CHƯƠNG, Lê (CC | HCM)";
+
       const SHEET_ID      = "199r5uLH2jcgmf0FxlOw4Mfuu4URkZXLnns-xNndBivs";
       const GID_MAIN      = "1690680102";
       const WEBHOOK_URL   = "https://script.google.com/macros/s/AKfycbz_XXXXXXXXX/exec";
       const SECURITY_PIN  = "1234";
       const SLA_THRESHOLD = 30; // phút
+
+      // Đọc nhân viên từ localStorage hoặc dùng mặc định
+      let TARGET_STAFF = DEFAULT_STAFF;
+      try {
+        const saved = localStorage.getItem("selectedStaff");
+        if (saved && STAFF_LIST.includes(saved)) TARGET_STAFF = saved;
+      } catch(e) {}
 
       // Ca làm việc: [startH, endH] theo 24h (endH exclusive, wrap qua 0 nếu khuya)
       const SHIFTS = {
@@ -532,11 +597,36 @@
       // =========================================================
       document.getElementById("staffNameDisplay").textContent = TARGET_STAFF;
 
+      // Build staff selector
+      (function initStaffSelector(){
+        const sel = document.getElementById("staffSelector");
+        STAFF_LIST.forEach(name => {
+          const opt = document.createElement("option");
+          opt.value = name;
+          // Rút gọn tên: bỏ phần " (CC | HCM)"
+          opt.textContent = name.replace(" (CC | HCM)", "");
+          if(name === TARGET_STAFF) opt.selected = true;
+          sel.appendChild(opt);
+        });
+      })();
+
+      function changeStaff(name) {
+        if(!STAFF_LIST.includes(name)) return;
+        TARGET_STAFF = name;
+        try { localStorage.setItem("selectedStaff", name); } catch(e) {}
+        document.getElementById("staffNameDisplay").textContent = name;
+        // Reset data và fetch lại
+        ALL_DATA = []; CURRENT_DATA = [];
+        fetchFromGViz();
+      }
+
       let ALL_DATA=[], CURRENT_DATA=[], currentModalData=[];
       let currentSortCol="date", currentSortAsc=false;
       let charts={}, countdown=300, timerInterval, activeTicket=null;
       let isLayoutEditMode=false, sortableInstances=[];
-      let currentShift="all"; // "all" | "morning" | "evening" | "night"
+      let currentShift="all";
+      // Cache counts cho rerenderTables
+      let _cachedCounts = { mainType:[], typeIssue:[], location:[] };
 
       let isDarkMode=false;
       try{ isDarkMode=localStorage.getItem("theme")==="dark"; }catch(e){}
@@ -632,9 +722,17 @@
       // Ngày làm việc gần nhất (bỏ qua hôm nay, lùi về ngày trước)
       function getLastWorkingDay(){
         const t=new Date(); t.setHours(0,0,0,0);
-        const d=new Date(t); d.setDate(d.getDate()-1);
+        // Lùi 1 ngày liên tiếp, bỏ qua thứ 7 & chủ nhật
+        let d=new Date(t); d.setDate(d.getDate()-1);
+        // tối đa lùi 7 ngày để tránh loop vô hạn
+        for(let i=0;i<7;i++){
+          const dow=d.getDay(); // 0=CN, 6=T7
+          if(dow!==0 && dow!==6) return fmtDate(d);
+          d.setDate(d.getDate()-1);
+        }
         return fmtDate(d);
-    }
+      }
+
       // =========================================================
       // AUTO REFRESH
       // =========================================================
@@ -664,9 +762,16 @@
         return `<span class="delta-chip ${cls}"><span class="chip-lbl">${label}</span> ${arrow}${diff>0?"+":""}${diff}${pct}</span>`;
       }
 
-      function renderDualDelta(rowId, curr, prevMonth, prevDay, lowerIsBetter){
+      // renderDualDelta(rowId, curr, prevMonth, currDay, prevDay, lowerIsBetter, dayLabel)
+      // chip 1: curr vs prevMonth (label "kỳ trước")
+      // chip 2: currDay vs prevDay (label = dayLabel động)
+      function renderDualDelta(rowId, curr, prevMonth, currDay, prevDay, lowerIsBetter, dayLabel){
         const el=document.getElementById(rowId); if(!el)return;
-        el.innerHTML = makeChip(curr,prevMonth,lowerIsBetter,"tháng trước") + makeChip(curr,prevDay,lowerIsBetter,"hôm qua");
+        const chip1 = makeChip(curr, prevMonth, lowerIsBetter, "kỳ trước");
+        const chip2 = (currDay!==null && currDay!==undefined && dayLabel)
+          ? makeChip(currDay, prevDay, lowerIsBetter, dayLabel)
+          : `<span class="delta-chip neutral"><span class="chip-lbl">${dayLabel||"ngày"}</span> —</span>`;
+        el.innerHTML = chip1 + chip2;
       }
 
       // =========================================================
@@ -763,11 +868,6 @@
             if(currentShift!=="all") prevMonthData=prevMonthData.filter(x=>inShift(x,currentShift));
           }
 
-          // === KỲ TRƯỚC (hôm qua / ngày làm việc gần nhất) ===
-          const lastWorkDay=getLastWorkingDay();
-          let prevDayData=myAll.filter(x=>x.date===lastWorkDay);
-          if(currentShift!=="all") prevDayData=prevDayData.filter(x=>inShift(x,currentShift));
-
           // === KPI ===
           const mTotal=CURRENT_DATA.length;
           const mClosed=CURRENT_DATA.filter(x=>x.isClosed).length;
@@ -787,11 +887,48 @@
           const pmTime=prevMonthData.filter(x=>x.duration!==null&&x.duration>0);
           const pmAvgTime=pmTime.length>0?Math.round(pmTime.reduce((a,c)=>a+c.duration,0)/pmTime.length):null;
 
-          // === PREV DAY KPI ===
-          const pdTotal=prevDayData.length;
-          const pdClosed=prevDayData.filter(x=>x.isClosed).length;
-          const pdTime=prevDayData.filter(x=>x.duration!==null&&x.duration>0);
-          const pdAvgTime=pdTime.length>0?Math.round(pdTime.reduce((a,c)=>a+c.duration,0)/pdTime.length):null;
+          // === CHIP NGÀY: logic mới ===
+          // Hôm nay (luôn dùng làm 1 vế)
+          const todayStr=fmtDate(new Date());
+          const todayData=myAll.filter(x=>x.date===todayStr&&(currentShift==="all"||inShift(x,currentShift)));
+          const tdTotal=todayData.length;
+          const tdClosed=todayData.filter(x=>x.isClosed).length;
+          const tdTime=todayData.filter(x=>x.duration!==null&&x.duration>0);
+          const tdAvgTime=tdTime.length>0?Math.round(tdTime.reduce((a,c)=>a+c.duration,0)/tdTime.length):null;
+
+          // Xác định 2 vế cho chip ngày:
+          // - Nếu lọc đúng 1 ngày và khác hôm nay → so "ngày đó" vs "hôm nay"
+          //   chip hiển thị: curr=số ngày lọc, prev=số hôm nay, label="vs hôm nay"
+          // - Mọi trường hợp còn lại (xem cả kỳ, hoặc đang xem hôm nay)
+          //   → so "hôm nay" vs "hôm qua"
+          //   chip hiển thị: curr=số hôm nay, prev=số hôm qua, label="hôm nay/hôm qua"
+          const isSingleDay = (fStr === tStr);
+          const isToday     = (fStr === todayStr);
+          let chipLabel, chipCurr_total, chipCurr_closed, chipCurr_time;
+          let chipPrev_total, chipPrev_closed, chipPrev_time;
+
+          if(isSingleDay && !isToday){
+            // Xem 1 ngày cụ thể khác hôm nay → "ngày lọc" so với "hôm nay"
+            chipLabel       = "vs hôm nay";
+            chipCurr_total  = mTotal;
+            chipCurr_closed = mClosed;
+            chipCurr_time   = mAvgTime||null;
+            chipPrev_total  = tdTotal;
+            chipPrev_closed = tdClosed;
+            chipPrev_time   = tdAvgTime;
+          } else {
+            // Xem hôm nay hoặc xem cả kỳ → "hôm nay" so với "hôm qua"
+            chipLabel       = "vs hôm qua";
+            const ydStr     = getLastWorkingDay();
+            const ydData    = myAll.filter(x=>x.date===ydStr&&(currentShift==="all"||inShift(x,currentShift)));
+            chipCurr_total  = tdTotal;
+            chipCurr_closed = tdClosed;
+            chipCurr_time   = tdAvgTime;
+            chipPrev_total  = ydData.length;
+            chipPrev_closed = ydData.filter(x=>x.isClosed).length;
+            const ydTime    = ydData.filter(x=>x.duration!==null&&x.duration>0);
+            chipPrev_time   = ydTime.length>0?Math.round(ydTime.reduce((a,c)=>a+c.duration,0)/ydTime.length):null;
+          }
 
           // === RENDER KPI ===
           document.getElementById("kpiTotal").textContent=mTotal.toLocaleString("vi-VN");
@@ -806,11 +943,11 @@
           document.getElementById("closeRatePct").textContent=rate+"%";
           document.getElementById("closeRateFill").style.width=rate+"%";
 
-          // DELTA — dual chips (vs tháng trước + vs hôm qua)
-          renderDualDelta("kpiTotalDeltas",  mTotal,   pmTotal>0?pmTotal:null,   pdTotal>0?pdTotal:null,   false);
-          renderDualDelta("kpiClosedDeltas", mClosed,  pmClosed>0?pmClosed:null, pdClosed>0?pdClosed:null, false);
-          renderDualDelta("kpiOpenDeltas",   mOpen,    null, null, true); // tồn đọng không so ngày
-          renderDualDelta("kpiTimeDeltas",   mAvgTime, pmAvgTime, pdAvgTime, true);
+          // DELTA — chip kỳ trước + chip ngày (label động)
+          renderDualDelta("kpiTotalDeltas",  mTotal,   pmTotal>0?pmTotal:null,   chipCurr_total,  chipPrev_total>0?chipPrev_total:null,  false, chipLabel);
+          renderDualDelta("kpiClosedDeltas", mClosed,  pmClosed>0?pmClosed:null, chipCurr_closed, chipPrev_closed>0?chipPrev_closed:null, false, chipLabel);
+          renderDualDelta("kpiOpenDeltas",   mOpen,    null, null, null, true);
+          renderDualDelta("kpiTimeDeltas",   mAvgTime, pmAvgTime, chipCurr_time, chipPrev_time, true, chipLabel);
 
           // SPARKLINE — 7 ngày gần nhất
           const today=new Date(); today.setHours(0,0,0,0);
@@ -835,16 +972,12 @@
           // HOUR HEATMAP
           buildHourChart(CURRENT_DATA);
 
-          // TOP TABLES
-          const counts=key=>{ const r={};CURRENT_DATA.forEach(x=>{r[x[key]]=(r[x[key]]||0)+1;});return Object.entries(r).sort((a,b)=>b[1]-a[1]); };
-          const mainTop=counts("mainType").slice(0,10);
-          const issueTop=counts("typeIssue").slice(0,10);
-          const locTop=counts("location").slice(0,10);
-
-          const renderTable=(id,arr,keyObj)=>{ const el=document.getElementById(id);if(!el)return;el.innerHTML=arr.map((x,i)=>{ const safe=String(x[0]).replace(/'/g,"\\'");return`<tr onclick="openDetail('${escapeHtml(x[0])}',d=>d['${keyObj}']==='${safe}')"><td><span class="rank">${i+1}</span>${escapeHtml(x[0])}</td><td>${x[1].toLocaleString("vi-VN")}</td></tr>`; }).join(""); };
-          renderTable("mainTable",mainTop,"mainType");
-          renderTable("typeTable",issueTop,"typeIssue");
-          renderTable("locationTable",locTop,"location");
+          // TOP TABLES — lưu cache full, render theo top-select
+          const countsFn=key=>{ const r={};CURRENT_DATA.forEach(x=>{r[x[key]]=(r[x[key]]||0)+1;});return Object.entries(r).sort((a,b)=>b[1]-a[1]); };
+          _cachedCounts.mainType  = countsFn("mainType");
+          _cachedCounts.typeIssue = countsFn("typeIssue");
+          _cachedCounts.location  = countsFn("location");
+          rerenderTables();
 
           // PENDING TABLE
           const elPending=document.getElementById("pendingBody");
@@ -870,8 +1003,34 @@
             }
           }
 
-          updateInsights(mTotal,mOpen,mAvgTime,mClosed,rate,mainTop,ts,mEsc,escRate,slaBreached,slaPct,CURRENT_DATA);
+          updateInsights(mTotal,mOpen,mAvgTime,mClosed,rate,_cachedCounts.mainType.slice(0,10),ts,mEsc,escRate,slaBreached,slaPct,CURRENT_DATA);
         }catch(err){ console.error(err); }
+      }
+
+      // =========================================================
+      // RERENDER TABLES (Top N)
+      // =========================================================
+      function rerenderTables(){
+        const nMain  = parseInt(document.getElementById("topMain")?.value  || 5);
+        const nIssue = parseInt(document.getElementById("topIssue")?.value || 5);
+        const nLoc   = parseInt(document.getElementById("topLoc")?.value   || 5);
+
+        const renderTable=(id,arr,keyObj,n)=>{
+          const el=document.getElementById(id); if(!el)return;
+          const sliced=arr.slice(0,n);
+          if(!sliced.length){ el.innerHTML=`<tr><td colspan="2" style="text-align:center;padding:16px;color:var(--text-muted);font-size:10px;">Không có dữ liệu</td></tr>`; return; }
+          el.innerHTML=sliced.map((x,i)=>{
+            const safe=String(x[0]).replace(/'/g,"\\'");
+            const pct=_cachedCounts[Object.keys(_cachedCounts).find(k=>arr===_cachedCounts[k])||""]?.reduce((s,e)=>s+e[1],0)||0;
+            return`<tr onclick="openDetail('${escapeHtml(x[0])}',d=>d['${keyObj}']==='${safe}')">
+              <td><span class="rank">${i+1}</span>${escapeHtml(x[0])}</td>
+              <td>${x[1].toLocaleString("vi-VN")}</td>
+            </tr>`;
+          }).join("");
+        };
+        renderTable("mainTable",    _cachedCounts.mainType,  "mainType",  nMain);
+        renderTable("typeTable",    _cachedCounts.typeIssue, "typeIssue", nIssue);
+        renderTable("locationTable",_cachedCounts.location,  "location",  nLoc);
       }
 
       // =========================================================
